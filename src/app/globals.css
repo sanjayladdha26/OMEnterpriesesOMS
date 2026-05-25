@@ -1,0 +1,301 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  --color-bg: #ffffff;
+  --color-fg: #1F2937;
+  --color-sfc: #F8FAFB;
+  --color-sfc-hv: #F1F5F5;
+  --color-bd: #E5E7EB;
+  --color-bd-dk: #D1D5DB;
+  --color-txt-pri: #1F2937;
+  --color-txt-mut: #6B7280;
+  --color-txt-lgt: #9CA3AF;
+  --color-sb: #F8FAFB;
+  --color-sb-hv: #E6F4F4;
+
+  --p: #4A90E2;
+  --p-light: #E6F0FA;
+  --p-dark: #357ABD;
+  --p-50: #F2F7FD;
+  --p-100: #E6F0FA;
+  --p-200: #C0D8F4;
+  --p-600: #3B73B5;
+  --p-700: #2C5687;
+  --p-800: #1D395A;
+  
+  --a: #F59E0B;
+  --a-light: #FEF3C7;
+  --a-dark: #D97706;
+  
+  --g: #16A34A;
+  --g-light: #DCFCE7;
+  --g-dark: #15803D;
+  
+  --r: #DC2626;
+  --r-light: #FEE2E2;
+  --r-dark: #B91C1C;
+  
+  --pu: #7C3AED;
+  --bl: #2563EB;
+  
+  --pk: #D85A8A;
+  --pk-light: #FDF2F6;
+  --pk-dark: #B0436D;
+}
+
+.dark {
+  --color-bg: #030712;
+  --color-fg: #F9FAFB;
+  --color-sfc: #111827;
+  --color-sfc-hv: #1F2937;
+  --color-bd: #374151;
+  --color-bd-dk: #4B5563;
+  --color-txt-pri: #F9FAFB;
+  --color-txt-mut: #9CA3AF;
+  --color-txt-lgt: #6B7280;
+  --color-sb: #030712;
+  --color-sb-hv: #111827;
+
+  --p: #68A4D9;
+  --p-light: #1D395A;
+  --p-dark: #8DBDF1;
+  --p-50: #0B192C;
+  --p-100: #12294A;
+  --p-200: #1D395A;
+  --p-600: #4A90E2;
+  --p-700: #357ABD;
+  --p-800: #235282;
+  
+  --a: #FBBF24;
+  --a-light: #422006; /* Dark amber background */
+  --a-dark: #FDE68A;
+  
+  --g: #4ADE80;
+  --g-light: #052E16; /* Dark green background */
+  --g-dark: #86EFAC;
+  
+  --r: #F87171;
+  --r-light: #450A0A; /* Dark red background */
+  --r-dark: #FCA5A5;
+  
+  --pu: #A78BFA;
+  --bl: #60A5FA;
+  
+  --pk: #E47C9F;
+  --pk-light: #4A1A2E;
+  --pk-dark: #EF9DB8;
+}
+
+@theme inline {
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-fg);
+  --color-surface: var(--color-sfc);
+  --color-surface-hover: var(--color-sfc-hv);
+  --color-border: var(--color-bd);
+  --color-border-dark: var(--color-bd-dk);
+  --color-text-primary: var(--color-txt-pri);
+  --color-text-muted: var(--color-txt-mut);
+  --color-text-light: var(--color-txt-lgt);
+  --color-sidebar: var(--color-sb);
+  --color-sidebar-hover: var(--color-sb-hv);
+
+  --color-primary: var(--p);
+  --color-primary-light: var(--p-light);
+  --color-primary-dark: var(--p-dark);
+  --color-primary-50: var(--p-50);
+  --color-primary-100: var(--p-100);
+  --color-primary-200: var(--p-200);
+  --color-primary-600: var(--p-600);
+  --color-primary-700: var(--p-700);
+  --color-primary-800: var(--p-800);
+  
+  --color-amber: var(--a);
+  --color-amber-light: var(--a-light);
+  --color-amber-dark: var(--a-dark);
+  
+  --color-green: var(--g);
+  --color-green-light: var(--g-light);
+  --color-green-dark: var(--g-dark);
+  
+  --color-red: var(--r);
+  --color-red-light: var(--r-light);
+  --color-red-dark: var(--r-dark);
+  
+  --color-purple: var(--pu);
+  --color-blue: var(--bl);
+  
+  --color-pink: var(--pk);
+  --color-pink-light: var(--pk-light);
+  --color-pink-dark: var(--pk-dark);
+  
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ── Base ─────────────────────────────────────────────────── */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  min-height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+/* ── Focus ────────────────────────────────────────────────── */
+
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ── Print ────────────────────────────────────────────────── */
+
+.receipt-print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: 58mm auto;
+    margin: 2mm;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .receipt-print-only {
+    display: block;
+  }
+  body {
+    background: white;
+    color: black;
+  }
+}
+
+/* ── Number Input Spinners ────────────────────────────────── */
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* ── Drawer Animation ─────────────────────────────────────── */
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.drawer-enter {
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+.drawer-exit {
+  animation: slideOutRight 0.25s ease-in forwards;
+}
+
+.overlay-enter {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.overlay-exit {
+  animation: fadeOut 0.25s ease-in forwards;
+}
+
+/* ── Modal Animation ──────────────────────────────────────── */
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-enter {
+  animation: scaleIn 0.2s ease-out forwards;
+}
+
+/* ── Pulse Animation ──────────────────────────────────────── */
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
