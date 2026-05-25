@@ -26,9 +26,6 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (!role) {
-    if (pathname === "/pos" || pathname === "/") {
-      return <>{children}</>;
-    }
     return <LoginScreen />;
   }
 

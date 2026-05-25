@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, ImageIcon } from "lucide-react";
 import { useProducts, useCategories } from "@/lib/hooks";
 import { formatINR } from "@/lib/utils";
 import type { Product } from "@/types/database";
@@ -42,20 +42,43 @@ export function ProductSelector() {
               <button
                 key={product.id}
                 onClick={() => setSelectedProduct(product)}
-                className="bg-surface border border-border rounded-xl p-3.5 text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
+                className="bg-surface border border-border rounded-xl overflow-hidden text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group flex flex-col"
               >
-                <h3 className="text-sm font-semibold text-text-primary leading-tight group-hover:text-primary transition-colors">
-                  {product.name}
-                  {product.sku_name && <span className="ml-1 text-xs text-text-muted font-normal">({product.sku_name})</span>}
-                </h3>
-                <p className="text-xs text-text-muted mt-0.5">
-                  {product.category}
-                </p>
-                <div className="mt-2">
-                  <span className="text-sm font-bold text-primary">
-                    {formatINR(product.price_per_unit)}
-                      /{product.unit === "piece" ? "pc" : product.unit}
-                  </span>
+                {/* Product Image */}
+                {product.image_url ? (
+                  <div className="w-full h-28 bg-surface overflow-hidden">
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full h-28 bg-surface/80 border-b border-border flex items-center justify-center">
+                    <ImageIcon className="w-8 h-8 text-text-muted/30" />
+                  </div>
+                )}
+
+                {/* Product Info */}
+                <div className="p-3">
+                  <h3 className="text-sm font-semibold text-text-primary leading-tight group-hover:text-primary transition-colors">
+                    {product.name}
+                    {product.sku_name && <span className="ml-1 text-xs text-text-muted font-normal">({product.sku_name})</span>}
+                  </h3>
+                  {product.description && (
+                    <p className="text-[11px] text-text-muted mt-0.5 line-clamp-1">
+                      {product.description}
+                    </p>
+                  )}
+                  <p className="text-xs text-text-muted mt-0.5">
+                    {product.category}
+                  </p>
+                  <div className="mt-1.5">
+                    <span className="text-sm font-bold text-primary">
+                      {formatINR(product.price_per_unit)}
+                        /{product.unit === "piece" ? "pc" : product.unit}
+                    </span>
+                  </div>
                 </div>
               </button>
             );

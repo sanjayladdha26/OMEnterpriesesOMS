@@ -3,89 +3,91 @@
 @import "tailwindcss";
 
 :root {
-  --color-bg: #ffffff;
-  --color-fg: #1F2937;
-  --color-sfc: #F8FAFB;
-  --color-sfc-hv: #F1F5F5;
-  --color-bd: #E5E7EB;
-  --color-bd-dk: #D1D5DB;
-  --color-txt-pri: #1F2937;
-  --color-txt-mut: #6B7280;
-  --color-txt-lgt: #9CA3AF;
-  --color-sb: #F8FAFB;
-  --color-sb-hv: #E6F4F4;
+  --color-bg: #FCFDFE;
+  --color-fg: #1E293B;
+  --color-sfc: #FFFFFF;
+  --color-sfc-hv: #F8FAFC;
+  --color-bd: #E2E8F0;
+  --color-bd-dk: #CBD5E1;
+  --color-txt-pri: #0F172A;
+  --color-txt-mut: #64748B;
+  --color-txt-lgt: #94A3B8;
+  --color-sb: #FFFFFF;
+  --color-sb-hv: #F1F5F9;
 
-  --p: #4A90E2;
-  --p-light: #E6F0FA;
-  --p-dark: #357ABD;
-  --p-50: #F2F7FD;
-  --p-100: #E6F0FA;
-  --p-200: #C0D8F4;
-  --p-600: #3B73B5;
-  --p-700: #2C5687;
-  --p-800: #1D395A;
+  /* Baby Blue */
+  --p: #4B8CE6;
+  --p-light: #EFF6FF;
+  --p-dark: #3B75C7;
+  --p-50: #EFF6FF;
+  --p-100: #DBEAFE;
+  --p-200: #BFDBFE;
+  --p-600: #3B75C7;
+  --p-700: #295B9C;
+  --p-800: #1D4378;
   
   --a: #F59E0B;
   --a-light: #FEF3C7;
   --a-dark: #D97706;
   
-  --g: #16A34A;
-  --g-light: #DCFCE7;
-  --g-dark: #15803D;
+  --g: #10B981;
+  --g-light: #D1FAE5;
+  --g-dark: #059669;
   
-  --r: #DC2626;
+  --r: #EF4444;
   --r-light: #FEE2E2;
-  --r-dark: #B91C1C;
+  --r-dark: #DC2626;
   
-  --pu: #7C3AED;
-  --bl: #2563EB;
+  --pu: #8B5CF6;
+  --bl: #3B82F6;
   
-  --pk: #D85A8A;
-  --pk-light: #FDF2F6;
-  --pk-dark: #B0436D;
+  /* Soft Pink */
+  --pk: #E86A92;
+  --pk-light: #FCE7F3;
+  --pk-dark: #BE185D;
 }
 
 .dark {
-  --color-bg: #030712;
-  --color-fg: #F9FAFB;
-  --color-sfc: #111827;
-  --color-sfc-hv: #1F2937;
-  --color-bd: #374151;
-  --color-bd-dk: #4B5563;
-  --color-txt-pri: #F9FAFB;
-  --color-txt-mut: #9CA3AF;
-  --color-txt-lgt: #6B7280;
-  --color-sb: #030712;
-  --color-sb-hv: #111827;
+  --color-bg: #0F172A;
+  --color-fg: #F8FAFC;
+  --color-sfc: #1E293B;
+  --color-sfc-hv: #334155;
+  --color-bd: #334155;
+  --color-bd-dk: #475569;
+  --color-txt-pri: #F8FAFC;
+  --color-txt-mut: #94A3B8;
+  --color-txt-lgt: #64748B;
+  --color-sb: #0F172A;
+  --color-sb-hv: #1E293B;
 
-  --p: #68A4D9;
-  --p-light: #1D395A;
-  --p-dark: #8DBDF1;
+  --p: #60A5FA;
+  --p-light: #1E3A8A;
+  --p-dark: #93C5FD;
   --p-50: #0B192C;
   --p-100: #12294A;
-  --p-200: #1D395A;
-  --p-600: #4A90E2;
-  --p-700: #357ABD;
-  --p-800: #235282;
+  --p-200: #1E3A8A;
+  --p-600: #3B82F6;
+  --p-700: #2563EB;
+  --p-800: #1D4ED8;
   
   --a: #FBBF24;
-  --a-light: #422006; /* Dark amber background */
+  --a-light: #422006;
   --a-dark: #FDE68A;
   
-  --g: #4ADE80;
-  --g-light: #052E16; /* Dark green background */
-  --g-dark: #86EFAC;
+  --g: #34D399;
+  --g-light: #064E3B;
+  --g-dark: #6EE7B7;
   
   --r: #F87171;
-  --r-light: #450A0A; /* Dark red background */
+  --r-light: #450A0A;
   --r-dark: #FCA5A5;
   
   --pu: #A78BFA;
   --bl: #60A5FA;
   
-  --pk: #E47C9F;
-  --pk-light: #4A1A2E;
-  --pk-dark: #EF9DB8;
+  --pk: #F472B6;
+  --pk-light: #500724;
+  --pk-dark: #F9A8D4;
 }
 
 @theme inline {

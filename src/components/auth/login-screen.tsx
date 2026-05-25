@@ -26,13 +26,9 @@ export function LoginScreen() {
       
       <div className="relative z-10 w-full max-w-md p-8 sm:p-12">
         <div className="mb-10 text-center">
-          <div className="mx-auto bg-[var(--color-pink)]/10 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 border border-[var(--color-pink)]/20 shadow-[0_0_40px_-10px_rgba(216,90,138,0.4)]">
-            <ShieldCheck className="w-8 h-8 text-[var(--color-pink)]" />
+          <div className="mx-auto h-20 w-auto flex items-center justify-center mb-6">
+            <img src="/image.png" alt="Logo" className="h-full w-auto object-contain" />
           </div>
-          <h1 className="text-3xl font-light tracking-tight text-zinc-100 mb-2 flex justify-center gap-2">
-            <span className="text-primary">Baby</span>
-            <span className="font-semibold text-[var(--color-pink)]">Steps</span>
-          </h1>
           <p className="text-zinc-400 text-sm">Enter your access code to continue</p>
         </div>
 

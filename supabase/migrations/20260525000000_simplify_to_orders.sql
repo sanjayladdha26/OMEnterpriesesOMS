@@ -1,44 +1,36 @@
 -- ============================================================
--- TheBabySteps Order System — Database Schema
--- Run this in your Supabase SQL Editor for fresh setup
+-- Migration: Simplify POS → Order Management System
+-- Drops unused tables, renames bills→orders, simplifies schema
 -- ============================================================
 
--- ── Categories ───────────────────────────────────────────────
+-- ── 1. Drop all existing RPC functions ──────────────────────
 
-CREATE TABLE IF NOT EXISTS categories (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL UNIQUE,
-  preferred_mtr NUMERIC(10, 2),
-  created_at TIMESTAMPTZ DEFAULT now()
-);
+DROP FUNCTION IF EXISTS save_bill_with_payment(TEXT, UUID, TEXT, NUMERIC, TEXT, NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC, TEXT, TEXT, JSONB, TEXT);
+DROP FUNCTION IF EXISTS save_bill_with_payment(TEXT, UUID, TEXT, NUMERIC, TEXT, NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC, TEXT, TEXT, JSONB, TEXT, NUMERIC);
+DROP FUNCTION IF EXISTS update_bill_with_payment(UUID, UUID, TEXT, NUMERIC, TEXT, NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC, TEXT, TEXT, JSONB, TEXT);
+DROP FUNCTION IF EXISTS delete_bill(UUID);
+DROP FUNCTION IF EXISTS delete_payment(UUID);
+DROP FUNCTION IF EXISTS record_payment(UUID, NUMERIC, TEXT, TEXT, JSONB);
+DROP FUNCTION IF EXISTS recalc_customer_balance(UUID);
+DROP FUNCTION IF EXISTS delete_customer(UUID);
 
--- ── Products ────────────────────────────────────────────────
+-- ── 2. Drop unused tables ───────────────────────────────────
 
-CREATE TABLE IF NOT EXISTS products (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
-  sku_name TEXT,
-  category TEXT NOT NULL DEFAULT 'general',
-  price_per_unit NUMERIC(10, 2) NOT NULL,
-  unit TEXT NOT NULL DEFAULT 'piece' CHECK (unit IN ('metre', 'piece')),
-  image_url TEXT,
-  description TEXT,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
+DROP TABLE IF EXISTS payment_allocations CASCADE;
+DROP TABLE IF EXISTS payments CASCADE;
+DROP TABLE IF EXISTS staff CASCADE;
+DROP TABLE IF EXISTS settings CASCADE;
 
--- ── Customers ───────────────────────────────────────────────
+-- ── 3. Drop bill_items (will be recreated as order_items) ───
 
-CREATE TABLE IF NOT EXISTS customers (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
-  phone TEXT NOT NULL,
-  address TEXT DEFAULT '',
-  created_at TIMESTAMPTZ DEFAULT now()
-);
+DROP TABLE IF EXISTS bill_items CASCADE;
 
--- ── Orders ──────────────────────────────────────────────────
+-- ── 4. Rename and restructure bills → orders ────────────────
 
-CREATE TABLE IF NOT EXISTS orders (
+-- Drop the old bills table and recreate as orders
+DROP TABLE IF EXISTS bills CASCADE;
+
+CREATE TABLE orders (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   order_number TEXT NOT NULL UNIQUE,
   customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
@@ -53,9 +45,9 @@ CREATE TABLE IF NOT EXISTS orders (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- ── Order Items ─────────────────────────────────────────────
+-- ── 5. Create order_items table ─────────────────────────────
 
-CREATE TABLE IF NOT EXISTS order_items (
+CREATE TABLE order_items (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
   product_id UUID REFERENCES products(id) ON DELETE SET NULL,
@@ -66,23 +58,14 @@ CREATE TABLE IF NOT EXISTS order_items (
   subtotal NUMERIC(10, 2) NOT NULL
 );
 
--- ── Row Level Security ──────────────────────────────────────
+-- ── 6. Simplify customers table ────────────────────────────
 
-ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customers DROP COLUMN IF EXISTS outstanding_balance;
+
+-- ── 7. Row Level Security ──────────────────────────────────
+
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
-
--- Allow all access for now (no auth setup yet)
-DROP POLICY IF EXISTS "Allow all access to categories" ON categories;
-CREATE POLICY "Allow all access to categories" ON categories FOR ALL USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Allow all access to products" ON products;
-CREATE POLICY "Allow all access to products" ON products FOR ALL USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Allow all access to customers" ON customers;
-CREATE POLICY "Allow all access to customers" ON customers FOR ALL USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow all access to orders" ON orders;
 CREATE POLICY "Allow all access to orders" ON orders FOR ALL USING (true) WITH CHECK (true);
@@ -90,15 +73,14 @@ CREATE POLICY "Allow all access to orders" ON orders FOR ALL USING (true) WITH C
 DROP POLICY IF EXISTS "Allow all access to order_items" ON order_items;
 CREATE POLICY "Allow all access to order_items" ON order_items FOR ALL USING (true) WITH CHECK (true);
 
--- ── Indexes ─────────────────────────────────────────────────
+-- ── 8. Indexes ─────────────────────────────────────────────
 
 CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer_id);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at);
 CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
-CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
 
--- ── Triggers ────────────────────────────────────────────────
+-- ── 9. Auto-update updated_at trigger ──────────────────────
 
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -114,9 +96,9 @@ CREATE TRIGGER orders_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
--- ── RPC Functions ───────────────────────────────────────────
+-- ── 10. create_order RPC ───────────────────────────────────
+-- Creates order + items atomically. Returns order JSON.
 
--- create_order: Creates order + items atomically
 CREATE OR REPLACE FUNCTION create_order(
   p_order_number TEXT,
   p_customer_id UUID,
@@ -133,6 +115,7 @@ DECLARE
   v_created_at TIMESTAMPTZ;
   v_item JSONB;
 BEGIN
+  -- 1. Insert order
   INSERT INTO orders (
     order_number, customer_id, customer_name, customer_phone,
     subtotal, total, status
@@ -141,6 +124,7 @@ BEGIN
     p_subtotal, p_total, 'pending'
   ) RETURNING id, created_at INTO v_order_id, v_created_at;
 
+  -- 2. Insert order items
   FOR v_item IN SELECT * FROM jsonb_array_elements(p_items) LOOP
     INSERT INTO order_items (
       order_id, product_id, product_name, quantity,
@@ -160,7 +144,9 @@ BEGIN
 END;
 $$;
 
--- update_order_status: Admin updates order status
+-- ── 11. update_order_status RPC ────────────────────────────
+-- Admin updates order status with optional notes.
+
 CREATE OR REPLACE FUNCTION update_order_status(
   p_order_id UUID,
   p_status TEXT,
@@ -169,6 +155,7 @@ CREATE OR REPLACE FUNCTION update_order_status(
 RETURNS VOID
 LANGUAGE plpgsql AS $$
 BEGIN
+  -- Validate status
   IF p_status NOT IN ('pending', 'accepted', 'dispatched', 'completed', 'rejected') THEN
     RAISE EXCEPTION 'Invalid status: %', p_status;
   END IF;
@@ -184,7 +171,8 @@ BEGIN
 END;
 $$;
 
--- delete_order: Deletes order and cascades to items
+-- ── 12. delete_order RPC ───────────────────────────────────
+
 CREATE OR REPLACE FUNCTION delete_order(p_order_id UUID)
 RETURNS VOID
 LANGUAGE plpgsql AS $$

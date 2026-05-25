@@ -3,28 +3,24 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Package,
+  ShoppingCart,
+  FileText,
+  User,
   Menu,
   X,
-  FileText,
-  LogOut,
 } from "lucide-react";
 import { useUIStore } from "@/stores/ui-store";
-import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/admin/orders", label: "Orders", icon: FileText },
-  { href: "/admin/inventory", label: "Inventory", icon: Package },
+  { href: "/store", label: "Products", icon: ShoppingCart },
+  { href: "/store/orders", label: "My Orders", icon: FileText },
+  { href: "/store/profile", label: "Profile", icon: User },
 ];
 
-export function Sidebar() {
+export function StoreSidebar() {
   const pathname = usePathname();
   const { sidebarOpen, toggleSidebar, setSidebarOpen } = useUIStore();
-  const role = useAuthStore((state) => state.role);
-  const logout = useAuthStore((state) => state.logout);
-
-  if (!role) return null;
 
   return (
     <>
@@ -58,6 +54,7 @@ export function Sidebar() {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
+        {/* Logo */}
         <div className="px-5 py-6 border-b border-border flex items-center justify-center min-h-[88px] bg-white">
           <img src="/image.png" alt="Logo" className="w-full max-w-[160px] h-auto object-contain" />
         </div>
@@ -65,8 +62,7 @@ export function Sidebar() {
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-1">
           {navItems.map((item) => {
-            const isActive =
-              pathname === item.href || pathname.startsWith(item.href + "/");
+            const isActive = pathname === item.href;
             const Icon = item.icon;
 
             return (
@@ -87,28 +83,13 @@ export function Sidebar() {
             );
           })}
         </nav>
-
-        {/* Logout */}
-        <div className="px-3 py-4 border-t border-border">
-          <p className="px-3 mb-2 text-[10px] text-text-muted uppercase tracking-wider">
-            Logged in as <span className="font-semibold capitalize">{role}</span>
-          </p>
-          <button
-            onClick={() => { logout(); setSidebarOpen(false); }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red hover:bg-red-light transition-colors"
-          >
-            <LogOut className="w-5 h-5 flex-shrink-0" />
-            <span>Logout</span>
-          </button>
-        </div>
       </aside>
 
       {/* Bottom navigation for mobile */}
       <nav className="fixed bottom-0 left-0 right-0 z-30 bg-surface border-t border-border lg:hidden no-print">
         <div className="flex items-center justify-around h-16">
           {navItems.map((item) => {
-            const isActive =
-              pathname === item.href || pathname.startsWith(item.href + "/");
+            const isActive = pathname === item.href;
             const Icon = item.icon;
 
             return (

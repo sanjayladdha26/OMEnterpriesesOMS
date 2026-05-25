@@ -21,9 +21,7 @@ export default function RootLayout({
     <html lang="en" className="h-full" suppressHydrationWarning>
       <body className="min-h-full font-sans antialiased">
         <Providers>
-          <AuthGuard>
-            <AppShell>{children}</AppShell>
-          </AuthGuard>
+          {children}
         </Providers>
       </body>
     </html>

@@ -1,19 +1,19 @@
 // ============================================================
-// KapdaKart POS — Database Types
+// TheBabySteps Order System — Database Types
 // ============================================================
+
+export type OrderStatus = "pending" | "accepted" | "dispatched" | "completed" | "rejected";
+
+export type Unit = "metre" | "piece";
+
+// ── Categories ──────────────────────────────────────────────
 
 export interface Category {
   id: string;
+  name: string;
+  preferred_mtr?: number | null;
   created_at: string;
 }
-
-export type PaymentMethod = "cash" | "upi" | "credit";
-
-export type StaffRole = "owner" | "manager" | "billing";
-
-export type BillStatus = "completed" | "pending" | "cancelled";
-
-export type Unit = "metre" | "piece";
 
 // ── Products ────────────────────────────────────────────────
 
@@ -24,7 +24,8 @@ export interface Product {
   category: string;
   price_per_unit: number;
   unit: Unit;
-  hsn_code: string;
+  image_url?: string | null;
+  description?: string | null;
   created_at: string;
 }
 
@@ -35,94 +36,35 @@ export interface Customer {
   name: string;
   phone: string;
   address: string;
-  outstanding_balance: number;
   created_at: string;
 }
 
-// ── Bills ───────────────────────────────────────────────────
+// ── Orders ──────────────────────────────────────────────────
 
-export interface BillItem {
+export interface OrderItem {
   id: string;
-  bill_id: string;
+  order_id: string;
   product_id: string;
   product_name: string;
   quantity: number;
   unit: Unit;
   unit_price: number;
   subtotal: number;
-  hsn_code?: string;
 }
 
-export interface Bill {
+export interface Order {
   id: string;
-  bill_number: string;
+  order_number: string;
   customer_id: string | null;
-  customer_name: string | null;
-  items: BillItem[];
+  customer_name: string;
+  customer_phone?: string | null;
+  items: OrderItem[];
   subtotal: number;
-  discount_type: "percentage" | "flat";
-  discount_value: number;
-  discount_amount: number;
-  gst_rate: number;
-  cgst_amount: number;
-  sgst_amount: number;
-  gst_amount: number;
   total: number;
-  amount_paid: number;
-  payment_method: PaymentMethod;
-  status: BillStatus;
+  status: OrderStatus;
+  admin_notes?: string;
   created_at: string;
-}
-
-// ── Payment Allocations ─────────────────────────────────────
-
-export interface PaymentAllocation {
-  id: string;
-  payment_id: string;
-  bill_id: string;
-  amount: number;
-  created_at: string;
-}
-
-// ── Payments (Khata) ────────────────────────────────────────
-
-export interface Payment {
-  id: string;
-  customer_id: string;
-  amount: number;
-  payment_method: PaymentMethod;
-  notes: string;
-  created_at: string;
-}
-
-// ── Settings ────────────────────────────────────────────────
-
-export interface GSTConfig {
-  low_threshold: number;
-  low_rate: number;
-  high_rate: number;
-}
-
-export interface ShopSettings {
-  id: string;
-  shop_name: string;
-  gst_config: GSTConfig;
-  printer_enabled: boolean;
-  whatsapp_enabled: boolean;
-  whatsapp_number: string;
-  low_stock_threshold: number;
-  invoice_start_number: number;
-}
-
-// ── Staff ───────────────────────────────────────────────────
-
-export interface Staff {
-  id: string;
-  name: string;
-  role: StaffRole;
-  email: string;
-  is_active: boolean;
-  created_at: string;
+  updated_at: string;
 }
 
 // ── Cart (client-side only) ─────────────────────────────────
@@ -135,19 +77,4 @@ export interface CartItem {
   unit: Unit;
   unit_price: number;
   subtotal: number;
-  hsn_code?: string;
-  pieces?: number;
-  metres_per_piece?: number;
-}
-
-
-// ── Ledger Entry ────────────────────────────────────────────
-
-export interface LedgerEntry {
-  id: string;
-  type: "purchase" | "payment";
-  date: string;
-  description: string;
-  amount: number;
-  balance_after: number;
 }

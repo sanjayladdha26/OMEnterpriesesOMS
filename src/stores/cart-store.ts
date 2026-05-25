@@ -1,21 +1,17 @@
 // ============================================================
-// Zustand Cart Store — manages POS cart state
+// Zustand Cart Store — manages order cart state (simplified)
 // ============================================================
 
 import { create } from "zustand";
 import { createClient } from "@/lib/supabase/client";
-import type { CartItem, PaymentMethod, Unit, Bill } from "@/types/database";
-import { formatINR } from "@/lib/utils";
+import type { CartItem, Unit, Order } from "@/types/database";
 
 interface CartState {
   items: CartItem[];
-  discount_type: "percentage" | "flat";
-  discount_value: number;
-  payment_method: PaymentMethod;
-  amount_received: number | null; // null means full payment
+  saving: boolean;
   customer_id: string | null;
   customer_name: string | null;
-  saving: boolean;
+  customer_phone: string | null;
 
   // Actions
   addItem: (product: {
@@ -24,38 +20,24 @@ interface CartState {
     quantity: number;
     unit: Unit;
     unit_price: number;
-    hsn_code?: string;
   }) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
-  updateItemDetails: (id: string, updates: Partial<CartItem>) => void;
-  setDiscount: (type: "percentage" | "flat", value: number) => void;
-  setPaymentMethod: (method: PaymentMethod) => void;
-  setAmountReceived: (amount: number | null) => void;
-  setCustomer: (id: string | null, name: string | null) => void;
+  setCustomer: (id: string | null, name: string | null, phone: string | null) => void;
   clearCart: () => void;
-  saveBill: (billNumber: string, waiveBalance?: boolean) => Promise<Bill | null>;
+  createOrder: (orderNumber: string) => Promise<Order | null>;
 
-  // Computed (as functions)
+  // Computed
   getSubtotal: () => number;
-  getDiscountAmount: () => number;
-  getGSTRate: () => number;
-  getGSTAmount: () => number;
-  getCGST: () => number;
-  getSGST: () => number;
   getTotal: () => number;
-  getBalanceDue: () => number;
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
   items: [],
-  discount_type: "percentage",
-  discount_value: 0,
-  payment_method: "cash",
-  amount_received: null,
-  customer_id: null,
-  customer_name: "",
   saving: false,
+  customer_id: null,
+  customer_name: null,
+  customer_phone: null,
 
   addItem: (product) => {
     const id = `cart-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -70,7 +52,6 @@ export const useCartStore = create<CartState>((set, get) => ({
           unit: product.unit,
           unit_price: product.unit_price,
           subtotal: product.quantity * product.unit_price,
-          hsn_code: product.hsn_code,
         },
       ],
     }));
@@ -92,54 +73,20 @@ export const useCartStore = create<CartState>((set, get) => ({
     }));
   },
 
-  updateItemDetails: (id, updates) => {
-    set((state) => ({
-      items: state.items.map((item) => {
-        if (item.id === id) {
-          const updated = { ...item, ...updates };
-          // Recalculate subtotal in case quantity or unit_price changed
-          updated.subtotal = updated.quantity * updated.unit_price;
-          return updated;
-        }
-        return item;
-      }),
-    }));
-  },
-
-  setDiscount: (type, value) => {
-    set({ discount_type: type, discount_value: value });
-  },
-
-  setPaymentMethod: (method) => {
-    // Reset amount_received when switching to khata
-    if (method === "credit") {
-      set({ payment_method: method, amount_received: null });
-    } else {
-      set({ payment_method: method });
-    }
-  },
-
-  setAmountReceived: (amount) => {
-    set({ amount_received: amount });
-  },
-
-  setCustomer: (id, name) => {
-    set({ customer_id: id, customer_name: name });
+  setCustomer: (id, name, phone) => {
+    set({ customer_id: id, customer_name: name, customer_phone: phone });
   },
 
   clearCart: () => {
     set({
       items: [],
-      discount_type: "percentage",
-      discount_value: 0,
-      payment_method: "cash",
-      amount_received: null,
       customer_id: null,
-      customer_name: "",
+      customer_name: null,
+      customer_phone: null,
     });
   },
 
-  saveBill: async (billNumber: string, waiveBalance?: boolean) => {
+  createOrder: async (orderNumber: string) => {
     const state = get();
     if (state.items.length === 0) return null;
 
@@ -147,17 +94,7 @@ export const useCartStore = create<CartState>((set, get) => ({
 
     const supabase = createClient();
     const subtotal = state.getSubtotal();
-    const discountAmount = state.getDiscountAmount();
-    const gstRate = state.getGSTRate();
-    const cgst = state.getCGST();
-    const sgst = state.getSGST();
-    const gstAmount = state.getGSTAmount();
-    const total = state.getTotal();
-    const originalBalanceDue = state.getBalanceDue();
-    const balanceDue = waiveBalance ? 0 : originalBalanceDue;
-    const actualPaidAmount = waiveBalance && state.amount_received !== null ? state.amount_received : (total - balanceDue);
-
-    const billPaymentMethod = state.payment_method;
+    const total = subtotal; // No GST or discounts
 
     // Build items array for the RPC
     const itemsJson = state.items.map((item) => ({
@@ -167,88 +104,58 @@ export const useCartStore = create<CartState>((set, get) => ({
       unit: item.unit,
       unit_price: item.unit_price,
       subtotal: item.subtotal,
-      hsn_code: item.hsn_code,
     }));
 
-    // Payment notes
-    const paymentNotes = actualPaidAmount > 0 && state.customer_id
-      ? (waiveBalance
-          ? `Upfront payment for Bill ${billNumber} (${formatINR(originalBalanceDue)} Waived)`
-          : `Upfront payment for Bill ${billNumber}`)
-      : null;
-
     try {
-      const { data, error } = await supabase.rpc('save_bill_with_payment', {
-        p_bill_number: billNumber,
+      const { data, error } = await supabase.rpc("create_order", {
+        p_order_number: orderNumber,
         p_customer_id: state.customer_id,
-        p_customer_name: state.customer_name,
+        p_customer_name: state.customer_name || "Guest",
+        p_customer_phone: state.customer_phone || null,
         p_subtotal: subtotal,
-        p_discount_type: state.discount_type,
-        p_discount_value: state.discount_value,
-        p_discount_amount: discountAmount,
-        p_gst_rate: gstRate,
-        p_cgst_amount: cgst,
-        p_sgst_amount: sgst,
-        p_gst_amount: gstAmount,
         p_total: total,
-        p_amount_paid: actualPaidAmount,
-        p_payment_method: billPaymentMethod,
-        p_status: balanceDue > 0 ? "pending" : "completed",
         p_items: itemsJson,
-        p_payment_notes: paymentNotes,
-        p_waived_amount: waiveBalance ? originalBalanceDue : 0,
       });
 
       if (error) throw error;
 
-      // Build the saved bill object for receipt printing
-      const savedBill: Bill = {
+      // Build the saved order object
+      const savedOrder: Order = {
         id: data.id,
-        bill_number: billNumber,
+        order_number: orderNumber,
         customer_id: state.customer_id,
-        customer_name: state.customer_name,
+        customer_name: state.customer_name || "Guest",
+        customer_phone: state.customer_phone,
         items: state.items.map((item) => ({
           id: item.id,
-          bill_id: data.id,
+          order_id: data.id,
           product_id: item.product_id,
           product_name: item.product_name,
           quantity: item.quantity,
           unit: item.unit,
           unit_price: item.unit_price,
           subtotal: item.subtotal,
-          hsn_code: item.hsn_code,
         })),
         subtotal,
-        discount_type: state.discount_type,
-        discount_value: state.discount_value,
-        discount_amount: discountAmount,
-        gst_rate: gstRate,
-        cgst_amount: cgst,
-        sgst_amount: sgst,
-        gst_amount: gstAmount,
         total,
-        amount_paid: actualPaidAmount,
-        payment_method: billPaymentMethod,
-        status: balanceDue > 0 ? "pending" : "completed",
+        status: "pending",
         created_at: data.created_at,
+        updated_at: data.created_at,
       };
 
       // Clear cart after successful save
       set({
         items: [],
-        discount_type: "percentage",
-        discount_value: 0,
-        payment_method: "cash",
-        amount_received: null,
         customer_id: null,
-        customer_name: "",
+        customer_name: null,
+        customer_phone: null,
         saving: false,
       });
 
-      return savedBill;
+      return savedOrder;
     } catch (error) {
       const e = error as { message?: string; code?: string; details?: string; hint?: string };
-      console.error("Failed to save bill:", e?.message ?? error, {
+      console.error("Failed to create order:", e?.message ?? error, {
         code: e?.code,
         details: e?.details,
         hint: e?.hint,
@@ -262,55 +169,8 @@ export const useCartStore = create<CartState>((set, get) => ({
     return get().items.reduce((sum, item) => sum + item.subtotal, 0);
   },
 
-  getDiscountAmount: () => {
-    const { discount_type, discount_value } = get();
-    const subtotal = get().getSubtotal();
-    if (discount_type === "percentage") {
-      return (subtotal * discount_value) / 100;
-    }
-    return Math.min(discount_value, subtotal);
-  },
-
-  getGSTRate: () => {
-    return 5;
-  },
-
-  getGSTAmount: () => {
-    const subtotal = get().getSubtotal();
-    const discount = get().getDiscountAmount();
-    const taxableAmount = subtotal - discount;
-    const rate = get().getGSTRate();
-    return (taxableAmount * rate) / 100;
-  },
-
-  getCGST: () => {
-    return get().getGSTAmount() / 2;
-  },
-
-  getSGST: () => {
-    return get().getGSTAmount() / 2;
-  },
-
   getTotal: () => {
-    const subtotal = get().getSubtotal();
-    const discount = get().getDiscountAmount();
-    const gst = get().getGSTAmount();
-    return subtotal - discount + gst;
-  },
-
-  getBalanceDue: () => {
-    const state = get();
-    const total = state.getTotal();
-
-    // Full khata — entire amount is due
-    if (state.payment_method === "credit") return total;
-
-    // Cash/UPI with amount_received specified
-    if (state.amount_received !== null && state.amount_received < total) {
-      return Math.max(0, total - state.amount_received);
-    }
-
-    // Fully paid
-    return 0;
+    // Total equals subtotal — no GST or discounts
+    return get().getSubtotal();
   },
 }));
