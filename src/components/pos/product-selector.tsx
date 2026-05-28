@@ -96,14 +96,14 @@ export function ProductSelector() {
                         e.stopPropagation();
                         setViewingImageProduct(product);
                       }}
-                      className="absolute top-2 right-2 p-1.5 bg-black/40 hover:bg-black/60 rounded-full text-white backdrop-blur-sm opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                      className="absolute top-2 right-2 p-1.5 bg-black/40 hover:bg-black/60 rounded-full text-white backdrop-blur-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity shadow-sm z-10 pointer-events-auto"
                     >
                       <ZoomIn className="w-4 h-4" />
                     </button>
                   </div>
                 ) : (
-                  <div className="w-full h-28 bg-surface/80 border-b border-border flex items-center justify-center">
-                    <ImageIcon className="w-8 h-8 text-text-muted/30" />
+                  <div className="relative w-full h-28 bg-surface/80 border-b border-border flex items-center justify-center overflow-hidden">
+                    <ImageIcon className="w-8 h-8 text-text-muted/30 group-hover:scale-110 transition-transform duration-300" />
                   </div>
                 )}
 

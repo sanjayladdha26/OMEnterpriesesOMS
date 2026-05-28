@@ -20,6 +20,7 @@ interface CartState {
     quantity: number;
     unit: Unit;
     unit_price: number;
+    image_url?: string | null;
   }) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
@@ -52,6 +53,7 @@ export const useCartStore = create<CartState>((set, get) => ({
           unit: product.unit,
           unit_price: product.unit_price,
           subtotal: product.quantity * product.unit_price,
+          image_url: product.image_url,
         },
       ],
     }));

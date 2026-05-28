@@ -5,7 +5,9 @@ interface CustomerProfileState {
   customerId: string;
   name: string;
   phone: string;
-  setProfile: (customerId: string, name: string, phone: string) => void;
+  schoolName: string;
+  address: string;
+  setProfile: (customerId: string, name: string, phone: string, schoolName: string, address: string) => void;
   clearProfile: () => void;
 }
 
@@ -15,8 +17,10 @@ export const useCustomerProfileStore = create<CustomerProfileState>()(
       customerId: "",
       name: "",
       phone: "",
-      setProfile: (customerId, name, phone) => set({ customerId, name, phone }),
-      clearProfile: () => set({ customerId: "", name: "", phone: "" }),
+      schoolName: "",
+      address: "",
+      setProfile: (customerId, name, phone, schoolName, address) => set({ customerId, name, phone, schoolName, address }),
+      clearProfile: () => set({ customerId: "", name: "", phone: "", schoolName: "", address: "" }),
     }),
     {
       name: "customer-profile-storage",

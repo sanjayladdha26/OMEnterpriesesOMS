@@ -236,6 +236,12 @@ function OrderDetailDrawer({
             {order.customer_phone && (
               <p className="text-sm text-text-muted">{order.customer_phone}</p>
             )}
+            {order.customers?.school_name && (
+              <p className="text-sm text-text-muted">🏫 {order.customers.school_name}</p>
+            )}
+            {order.customers?.address && (
+              <p className="text-sm text-text-muted">📍 {order.customers.address}</p>
+            )}
           </div>
 
           {/* Items table */}

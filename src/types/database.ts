@@ -36,6 +36,7 @@ export interface Customer {
   name: string;
   phone: string;
   address: string;
+  school_name?: string;
   created_at: string;
 }
 
@@ -58,6 +59,7 @@ export interface Order {
   customer_id: string | null;
   customer_name: string;
   customer_phone?: string | null;
+  customers?: { address?: string; school_name?: string } | null;
   items: OrderItem[];
   subtotal: number;
   total: number;
@@ -77,4 +79,5 @@ export interface CartItem {
   unit: Unit;
   unit_price: number;
   subtotal: number;
+  image_url?: string | null;
 }

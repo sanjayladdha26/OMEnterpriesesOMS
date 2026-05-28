@@ -8,10 +8,12 @@ import { Loader2 } from "lucide-react";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { customerId: initialCustomerId, name: initialName, phone: initialPhone, setProfile } = useCustomerProfileStore();
+  const { customerId: initialCustomerId, name: initialName, phone: initialPhone, schoolName: initialSchoolName, address: initialAddress, setProfile } = useCustomerProfileStore();
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [schoolName, setSchoolName] = useState("");
+  const [address, setAddress] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -19,7 +21,9 @@ export default function ProfilePage() {
   useEffect(() => {
     setName(initialName);
     setPhone(initialPhone);
-  }, [initialName, initialPhone]);
+    setSchoolName(initialSchoolName || "");
+    setAddress(initialAddress || "");
+  }, [initialName, initialPhone, initialSchoolName, initialAddress]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,12 +49,12 @@ export default function ProfilePage() {
       if (existing) {
         custId = existing.id;
         // Optionally update name if it changed
-        await supabase.from("customers").update({ name }).eq("id", custId);
+        await supabase.from("customers").update({ name, school_name: schoolName, address }).eq("id", custId);
       } else {
         // 2. Create new customer
         const { data: newCust, error: insertError } = await supabase
           .from("customers")
-          .insert({ name, phone, address: "" })
+          .insert({ name, phone, school_name: schoolName, address })
           .select("id")
           .single();
           
@@ -59,7 +63,7 @@ export default function ProfilePage() {
       }
       
       // 3. Save to local store
-      setProfile(custId, name, phone);
+      setProfile(custId, name, phone, schoolName, address);
       router.push("/store");
     } catch (err: any) {
       console.error(err);
@@ -106,6 +110,28 @@ export default function ProfilePage() {
               disabled={saving}
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-primary disabled:opacity-50"
               placeholder="e.g. 9876543210"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">School Name</label>
+            <input
+              type="text"
+              value={schoolName}
+              onChange={(e) => setSchoolName(e.target.value)}
+              disabled={saving}
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-primary disabled:opacity-50"
+              placeholder="e.g. Springfield High School"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Address</label>
+            <textarea
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              disabled={saving}
+              rows={3}
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-primary disabled:opacity-50"
+              placeholder="Full address"
             />
           </div>
           <button

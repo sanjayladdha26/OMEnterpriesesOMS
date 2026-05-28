@@ -35,6 +35,7 @@ export function QuantityInputModal({ product, onClose }: QuantityInputModalProps
       quantity: quantity,
       unit: product.unit,
       unit_price: product.price_per_unit,
+      image_url: product.image_url,
     });
     onClose();
   };

@@ -1,11 +1,12 @@
 "use client";
 
-import { ShoppingCart, X, Plus, Minus, Trash2 } from "lucide-react";
-import { useEffect } from "react";
+import { ShoppingCart, X, Plus, Minus, Trash2, ImageIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useCartStore } from "@/stores/cart-store";
 import { formatINR, cn } from "@/lib/utils";
 import { OrderSubmitBar } from "./order-submit-bar";
 import { useCustomerProfileStore } from "@/stores/customer-profile-store";
+import { ImageViewerModal } from "../ui/image-viewer-modal";
 import type { Order } from "@/types/database";
 
 interface CartPanelProps {
@@ -16,6 +17,7 @@ interface CartPanelProps {
 
 export function CartPanel({ orderNumber, onOrderSaved, onClose }: CartPanelProps) {
   const profile = useCustomerProfileStore();
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const {
     items,
@@ -87,50 +89,73 @@ export function CartPanel({ orderNumber, onOrderSaved, onClose }: CartPanelProps
                 key={item.id}
                 className="bg-surface rounded-xl p-3 group"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-text-primary truncate">
-                      {item.product_name}
-                    </h4>
-                    <p className="text-xs text-text-muted mt-0.5">
-                      {formatINR(item.unit_price)}/{item.unit === "piece" ? "pc" : item.unit}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => removeItem(item.id)}
-                    className="p-1 rounded-lg text-text-light hover:text-red hover:bg-red-light transition-colors opacity-0 group-hover:opacity-100"
+                <div className="flex items-start gap-3">
+                  {/* Product Image */}
+                  <div 
+                    className="w-12 h-12 shrink-0 rounded-lg border border-border bg-surface-hover overflow-hidden relative cursor-pointer"
+                    onClick={() => item.image_url && setPreviewImage(item.image_url)}
                   >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="flex items-center justify-between mt-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center bg-surface-hover rounded-lg p-1 border border-border">
-                      <button
-                        onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                        className="w-7 h-7 rounded border border-border flex items-center justify-center hover:bg-surface-hover transition-colors"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <input
-                        type="number"
-                        value={item.quantity}
-                        onChange={(e) => updateQuantity(item.id, Math.max(0, parseInt(e.target.value) || 0))}
-                        step="1"
-                        min="0"
-                        className="w-12 text-center text-sm font-semibold bg-transparent focus:outline-none"
+                    {item.image_url ? (
+                      <img
+                        src={item.image_url}
+                        alt={item.product_name}
+                        className="w-full h-full object-cover"
                       />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ImageIcon className="w-5 h-5 text-text-muted/30" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-medium text-text-primary truncate">
+                          {item.product_name}
+                        </h4>
+                        <p className="text-xs text-text-muted mt-0.5">
+                          {formatINR(item.unit_price)}/{item.unit === "piece" ? "pc" : item.unit}
+                        </p>
+                      </div>
                       <button
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="w-7 h-7 mr-1 rounded border border-border flex items-center justify-center hover:bg-surface-hover transition-colors"
+                        onClick={() => removeItem(item.id)}
+                        className="p-1 rounded-lg text-text-light hover:text-red hover:bg-red-light transition-colors opacity-0 group-hover:opacity-100 ml-2"
                       >
-                        <Plus className="w-3 h-3" />
+                        <X className="w-4 h-4" />
                       </button>
                     </div>
+                    
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center bg-surface-hover rounded-lg p-1 border border-border">
+                          <button
+                            onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                            className="w-7 h-7 rounded border border-border flex items-center justify-center hover:bg-surface-hover transition-colors"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          <input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => updateQuantity(item.id, Math.max(0, parseInt(e.target.value) || 0))}
+                            step="1"
+                            min="0"
+                            className="w-12 text-center text-sm font-semibold bg-transparent focus:outline-none"
+                          />
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="w-7 h-7 mr-1 rounded border border-border flex items-center justify-center hover:bg-surface-hover transition-colors"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                      <span className="text-sm font-semibold text-text-primary">
+                        {formatINR(item.subtotal)}
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-sm font-semibold text-text-primary">
-                    {formatINR(item.subtotal)}
-                  </span>
                 </div>
               </div>
             ))}
@@ -160,6 +185,15 @@ export function CartPanel({ orderNumber, onOrderSaved, onClose }: CartPanelProps
           total={total}
           orderNumber={orderNumber}
           onOrderSaved={onOrderSaved}
+        />
+      )}
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <ImageViewerModal
+          imageUrl={previewImage}
+          altText="Product Preview"
+          onClose={() => setPreviewImage(null)}
         />
       )}
     </div>

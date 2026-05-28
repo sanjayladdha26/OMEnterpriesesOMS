@@ -71,6 +71,9 @@ export function useOrders() {
       if (error) throw error;
       return orders as Order[];
     },
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -89,6 +92,9 @@ export function useCustomerOrders(customerId: string) {
       return orders as Order[];
     },
     enabled: !!customerId,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -100,7 +106,7 @@ export function useOrderDetails(orderId: string | null) {
       if (!orderId) return null;
       const { data: order, error } = await supabase
         .from("orders")
-        .select("*")
+        .select("*, customers ( address, school_name )")
         .eq("id", orderId)
         .single();
 
@@ -116,6 +122,9 @@ export function useOrderDetails(orderId: string | null) {
       return { ...order, items } as Order;
     },
     enabled: !!orderId,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 }
 
