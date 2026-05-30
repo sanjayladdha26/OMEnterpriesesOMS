@@ -29,8 +29,8 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     } else if (role === "admin" && pathname.startsWith("/store")) {
       router.replace("/admin/orders");
     } else if (role === "staff") {
-      const hasAdminAccess = staff?.can_update_status || staff?.can_view_orders || staff?.can_view_inventory || staff?.can_view_agents || staff?.can_view_staff || staff?.can_create_order;
-      const canAccessOrders = staff?.can_update_status || staff?.can_view_orders;
+      const hasAdminAccess = staff?.can_accept_order || staff?.can_dispatch_order || staff?.can_complete_order || staff?.can_reject_order || staff?.can_view_orders || staff?.can_view_inventory || staff?.can_view_agents || staff?.can_view_staff || staff?.can_create_order;
+      const canAccessOrders = staff?.can_accept_order || staff?.can_dispatch_order || staff?.can_complete_order || staff?.can_reject_order || staff?.can_view_orders;
       
       if (pathname.startsWith("/admin")) {
         if (!hasAdminAccess) {
@@ -94,8 +94,8 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (role === "staff") {
-    const hasAdminAccess = staff?.can_update_status || staff?.can_view_orders || staff?.can_view_inventory || staff?.can_view_agents || staff?.can_view_staff || staff?.can_create_order;
-    const canAccessOrders = staff?.can_update_status || staff?.can_view_orders;
+    const hasAdminAccess = staff?.can_accept_order || staff?.can_dispatch_order || staff?.can_complete_order || staff?.can_reject_order || staff?.can_view_orders || staff?.can_view_inventory || staff?.can_view_agents || staff?.can_view_staff || staff?.can_create_order;
+    const canAccessOrders = staff?.can_accept_order || staff?.can_dispatch_order || staff?.can_complete_order || staff?.can_reject_order || staff?.can_view_orders;
     const canAccessCurrentAdminPage = 
       (pathname.startsWith("/admin/orders") && canAccessOrders) ||
       (pathname.startsWith("/admin/new-order") && staff?.can_create_order) ||

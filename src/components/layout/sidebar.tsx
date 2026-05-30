@@ -35,7 +35,7 @@ export function Sidebar() {
       { href: "/admin/new-order", label: "New Order", icon: ShoppingCart }
     );
   } else if (role === "staff") {
-    if (staff?.can_update_status || staff?.can_view_orders) {
+    if (staff?.can_accept_order || staff?.can_dispatch_order || staff?.can_complete_order || staff?.can_reject_order || staff?.can_view_orders) {
       navItems.push({ href: "/admin/orders", label: "Orders", icon: FileText });
     }
     if (staff?.can_view_inventory) {

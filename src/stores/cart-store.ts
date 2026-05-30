@@ -24,7 +24,6 @@ interface CartState {
   }) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
-  updateQuantity: (id: string, quantity: number) => void;
   setParty: (id: string | null, name: string | null) => void;
   setAgent: (id: string | null, name: string | null) => void;
   clearCart: () => void;
@@ -33,7 +32,6 @@ interface CartState {
 
 export const useCartStore = create<CartState>((set, get) => ({
   items: [],
-  saving: false,
   saving: false,
   party_id: null,
   party_name: null,
