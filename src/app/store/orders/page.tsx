@@ -212,9 +212,8 @@ export default function StoreOrdersPage() {
                         <div className="flex justify-between">
                           <span className="text-text-primary flex flex-col">
                             <span>{item.quantity} × {item.product_name}</span>
-                            {/* @ts-ignore */}
-                            {item.products?.sku_name && (
-                              <span className="text-xs text-text-muted">{item.products.sku_name}</span>
+                            {(item as any).products?.sku_name && (
+                              <span className="text-xs text-text-muted">{(item as any).products.sku_name}</span>
                             )}
                           </span>
                         </div>
