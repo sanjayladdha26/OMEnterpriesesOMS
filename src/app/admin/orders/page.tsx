@@ -317,9 +317,8 @@ function OrderDetailDrawer({
                     >
                       <td className="px-3 py-2 text-text-primary">
                         <div>{item.product_name}</div>
-                        {/* @ts-ignore */}
-                        {item.products?.sku_name && (
-                          <div className="text-xs text-text-muted mt-0.5">{item.products.sku_name}</div>
+                        {(item as any).products?.sku_name && (
+                          <div className="text-xs text-text-muted mt-0.5">{(item as any).products.sku_name}</div>
                         )}
                         {item.note && (
                           <div className="text-xs text-text-muted mt-0.5 italic">Note: {item.note}</div>
