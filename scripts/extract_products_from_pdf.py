@@ -9,7 +9,7 @@ import os
 import json
 
 PDF_PATH = r"C:\Users\Sumit singhvi\Downloads\BSCatalogueFinal2026.pdf"
-OUTPUT_PATH = r"d:\work\thebabystepsOrderSystem\scripts\extracted_products.json"
+OUTPUT_PATH = r"d:\work\OmEnterprisesOMS\scripts\extracted_products.json"
 
 # Product image filenames (without timestamp prefix and extension)
 PRODUCT_IMAGE_NAMES = [

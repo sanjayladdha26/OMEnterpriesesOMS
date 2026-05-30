@@ -5,7 +5,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { AuthGuard } from "@/components/auth/auth-guard";
 
 export const metadata: Metadata = {
-  title: "Baby Steps — Order System",
+  title: "OM — Order System",
   description: "Modern POS and Order Management System",
   icons: {
     icon: "/favicon.ico",

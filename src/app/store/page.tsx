@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
-import toast from "react-hot-toast";
 import { ProductSelector } from "@/components/pos/product-selector";
 import { CartPanel } from "@/components/pos/cart-panel";
 import { useNextOrderNumber } from "@/lib/hooks";
 import { useCartStore } from "@/stores/cart-store";
-import { useCustomerProfileStore } from "@/stores/customer-profile-store";
 import type { Order } from "@/types/database";
 
 export default function StorePage() {
@@ -16,25 +14,9 @@ export default function StorePage() {
   const [lastSavedOrder, setLastSavedOrder] = useState<Order | null>(null);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
   const cartItems = useCartStore((s) => s.items);
-  const profile = useCustomerProfileStore();
 
   const router = useRouter();
 
-  const [hasHydrated, setHasHydrated] = useState(false);
-
-  useEffect(() => {
-    setHasHydrated(useCustomerProfileStore.persist.hasHydrated());
-    const unsub = useCustomerProfileStore.persist.onFinishHydration(() => setHasHydrated(true));
-    return () => unsub();
-  }, []);
-
-  useEffect(() => {
-    if (!hasHydrated) return;
-    if (!profile.name || !profile.phone) {
-      toast("Please fill your profile information first", { icon: "ℹ️" });
-      router.push("/store/profile");
-    }
-  }, [hasHydrated, profile.name, profile.phone, router]);
   const handleOrderSaved = useCallback((order: Order) => {
     setLastSavedOrder(order);
     setTimeout(() => {

@@ -8,19 +8,23 @@ import {
   User,
   Menu,
   X,
+  LogOut,
 } from "lucide-react";
 import { useUIStore } from "@/stores/ui-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-  { href: "/store", label: "Products", icon: ShoppingCart },
-  { href: "/store/orders", label: "My Orders", icon: FileText },
-  { href: "/store/profile", label: "Profile", icon: User },
-];
 
 export function StoreSidebar() {
   const pathname = usePathname();
   const { sidebarOpen, toggleSidebar, setSidebarOpen } = useUIStore();
+  const logout = useAuthStore((s) => s.logout);
+  const role = useAuthStore((s) => s.role);
+
+  const navItems = [
+    { href: "/store", label: "Products", icon: ShoppingCart },
+    { href: "/store/parties", label: role === "party" ? "Profile" : "My Parties", icon: User },
+    { href: "/store/orders", label: "My Orders", icon: FileText },
+  ];
 
   return (
     <>
@@ -56,7 +60,7 @@ export function StoreSidebar() {
       >
         {/* Logo */}
         <div className="px-5 py-6 border-b border-border flex items-center justify-center min-h-[88px] bg-white">
-          <img src="/image.png" alt="Logo" className="w-full max-w-[160px] h-auto object-contain" />
+          <img src="/image.jpg" alt="Logo" className="w-full max-w-[160px] h-auto object-contain" />
         </div>
 
         {/* Nav */}
@@ -83,6 +87,20 @@ export function StoreSidebar() {
             );
           })}
         </nav>
+
+        {/* Logout */}
+        <div className="px-3 py-4 border-t border-border">
+          <p className="px-3 mb-2 text-[10px] text-text-muted uppercase tracking-wider">
+            Logged in as <span className="font-semibold capitalize">{role}</span>
+          </p>
+          <button
+            onClick={() => { logout(); setSidebarOpen(false); window.location.href = "/"; }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red hover:bg-red-light transition-colors"
+          >
+            <LogOut className="w-5 h-5 flex-shrink-0" />
+            <span>Logout</span>
+          </button>
+        </div>
       </aside>
 
       {/* Bottom navigation for mobile */}

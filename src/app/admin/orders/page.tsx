@@ -6,7 +6,6 @@ import {
   Search,
   X,
   SlidersHorizontal,
-  ChevronDown,
   Eye,
   Check,
   Truck,
@@ -14,6 +13,7 @@ import {
   XCircle,
   Trash2,
   Package,
+  Printer,
 } from "lucide-react";
 import {
   useOrders,
@@ -21,7 +21,7 @@ import {
   useDeleteOrder,
   useOrderDetails,
 } from "@/lib/hooks";
-import { formatDate, formatINR, cn } from "@/lib/utils";
+import { formatDate, cn } from "@/lib/utils";
 import type { OrderStatus, Order } from "@/types/database";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/stores/auth-store";
@@ -116,9 +116,6 @@ function SkeletonRows() {
             <div className="h-4 bg-border rounded w-10" />
           </td>
           <td className="px-4 py-3">
-            <div className="h-4 bg-border rounded w-16" />
-          </td>
-          <td className="px-4 py-3">
             <div className="h-5 bg-border rounded-full w-20" />
           </td>
           <td className="px-4 py-3">
@@ -183,6 +180,14 @@ function OrderDetailDrawer({
 }) {
   const { data: order, isLoading } = useOrderDetails(orderId);
   const updateStatus = useUpdateOrderStatus();
+  const role = useAuthStore((state) => state.role);
+  const staff = useAuthStore((state) => state.staff);
+  const isAdmin = role === "admin";
+
+  const canAccept = isAdmin || (role === "staff" && staff?.can_accept_order);
+  const canDispatch = isAdmin || (role === "staff" && staff?.can_dispatch_order);
+  const canComplete = isAdmin || (role === "staff" && staff?.can_complete_order);
+  const canReject = isAdmin || (role === "staff" && staff?.can_reject_order);
 
   const handleStatusChange = async (status: OrderStatus, adminNotes?: string) => {
     if (!order) return;
@@ -215,6 +220,7 @@ function OrderDetailDrawer({
         </div>
       ) : (
         <div className="space-y-6">
+          <div className="no-print space-y-6">
           {/* Order info */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -228,19 +234,59 @@ function OrderDetailDrawer({
             </p>
           </div>
 
-          {/* Customer info */}
-          <div className="bg-surface-hover rounded-xl p-4 space-y-1">
-            <p className="text-sm font-medium text-text-primary">
-              {order.customer_name}
-            </p>
-            {order.customer_phone && (
-              <p className="text-sm text-text-muted">{order.customer_phone}</p>
-            )}
-            {order.customers?.school_name && (
-              <p className="text-sm text-text-muted">🏫 {order.customers.school_name}</p>
-            )}
-            {order.customers?.address && (
-              <p className="text-sm text-text-muted">📍 {order.customers.address}</p>
+          {/* Party info */}
+          <div className="bg-surface-hover rounded-xl p-4 space-y-2">
+            <div className="flex flex-col">
+              <p className="text-base font-semibold text-text-primary">
+                {order.party?.account_name || order.party_name}
+              </p>
+              {order.agent_name && (
+                <p className="text-sm text-text-muted">Agent: {order.agent_name}</p>
+              )}
+            </div>
+            {order.party && (
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm pt-2 border-t border-border mt-2">
+                {order.party.phone1 && (
+                  <div className="flex flex-col">
+                    <span className="text-xs text-text-muted">Phone 1</span>
+                    <span className="text-text-primary">{order.party.phone1}</span>
+                  </div>
+                )}
+                {order.party.phone2 && (
+                  <div className="flex flex-col">
+                    <span className="text-xs text-text-muted">Phone 2</span>
+                    <span className="text-text-primary">{order.party.phone2}</span>
+                  </div>
+                )}
+                {order.party.gstin && (
+                  <div className="flex flex-col col-span-2">
+                    <span className="text-xs text-text-muted">GSTIN</span>
+                    <span className="text-text-primary">{order.party.gstin}</span>
+                  </div>
+                )}
+                {(order.party.address || order.party.city || order.party.state || order.party.pin_code) && (
+                  <div className="flex flex-col col-span-2">
+                    <span className="text-xs text-text-muted">Address</span>
+                    <span className="text-text-primary">
+                      {[order.party.address, order.party.city, order.party.state, order.party.pin_code]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </span>
+                  </div>
+                )}
+                {order.party.transport && (
+                  <div className="flex flex-col">
+                    <span className="text-xs text-text-muted">Transport</span>
+                    <span className="text-text-primary">{order.party.transport}</span>
+                  </div>
+                )}
+                {order.party.delivery_city && (
+                  <div className="flex flex-col">
+                    <span className="text-xs text-text-muted">Delivery City</span>
+                    <span className="text-text-primary">{order.party.delivery_city}</span>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -259,12 +305,6 @@ function OrderDetailDrawer({
                     <th className="text-right px-3 py-2 text-text-muted font-medium">
                       Qty
                     </th>
-                    <th className="text-right px-3 py-2 text-text-muted font-medium">
-                      Price
-                    </th>
-                    <th className="text-right px-3 py-2 text-text-muted font-medium">
-                      Subtotal
-                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -275,30 +315,19 @@ function OrderDetailDrawer({
                     >
                       <td className="px-3 py-2 text-text-primary">
                         <div>{item.product_name}</div>
-                        <div className="text-xs text-text-muted">{item.unit}</div>
+                        {/* @ts-ignore */}
+                        {item.products?.sku_name && (
+                          <div className="text-xs text-text-muted mt-0.5">{item.products.sku_name}</div>
+                        )}
                       </td>
                       <td className="px-3 py-2 text-right text-text-primary">
                         {item.quantity}
-                      </td>
-                      <td className="px-3 py-2 text-right text-text-muted">
-                        {formatINR(item.unit_price)}
-                      </td>
-                      <td className="px-3 py-2 text-right font-medium text-text-primary">
-                        {formatINR(item.subtotal)}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </div>
-
-          {/* Total */}
-          <div className="flex items-center justify-between px-1">
-            <span className="text-sm font-semibold text-text-primary">Total</span>
-            <span className="text-lg font-bold text-text-primary">
-              {formatINR(order.total)}
-            </span>
           </div>
 
           {/* Admin notes */}
@@ -310,48 +339,63 @@ function OrderDetailDrawer({
           )}
 
           {/* Action buttons */}
-          <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
+          <div className="flex flex-wrap gap-2 pt-2 border-t border-border no-print">
+            <button
+              onClick={() => window.print()}
+              className="flex items-center gap-2 px-4 py-2 bg-surface border border-border text-text-primary rounded-xl text-sm font-semibold hover:bg-surface-hover transition-colors"
+            >
+              <Printer className="w-4 h-4" />
+              Print
+            </button>
             {order.status === "pending" && (
               <>
-                <button
-                  onClick={() => handleStatusChange("accepted")}
-                  disabled={updateStatus.isPending}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-                >
-                  <Check className="w-4 h-4" />
-                  Accept
-                </button>
-                <button
-                  onClick={handleReject}
-                  disabled={updateStatus.isPending}
-                  className="flex items-center gap-2 px-4 py-2 bg-red text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-                >
-                  <XCircle className="w-4 h-4" />
-                  Reject
-                </button>
+                {canAccept && (
+                  <button
+                    onClick={() => handleStatusChange("accepted")}
+                    disabled={updateStatus.isPending}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    <Check className="w-4 h-4" />
+                    Accept
+                  </button>
+                )}
+                {canReject && (
+                  <button
+                    onClick={handleReject}
+                    disabled={updateStatus.isPending}
+                    className="flex items-center gap-2 px-4 py-2 bg-red text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Reject
+                  </button>
+                )}
               </>
             )}
             {order.status === "accepted" && (
               <>
-                <button
-                  onClick={() => handleStatusChange("dispatched")}
-                  disabled={updateStatus.isPending}
-                  className="flex items-center gap-2 px-4 py-2 bg-purple text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-                >
-                  <Truck className="w-4 h-4" />
-                  Dispatch
-                </button>
-                <button
-                  onClick={handleReject}
-                  disabled={updateStatus.isPending}
-                  className="flex items-center gap-2 px-4 py-2 bg-red text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-                >
-                  <XCircle className="w-4 h-4" />
-                  Reject
-                </button>
+                {canDispatch && (
+                  <button
+                    onClick={() => handleStatusChange("dispatched")}
+                    disabled={updateStatus.isPending}
+                    className="flex items-center gap-2 px-4 py-2 bg-purple text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    <Truck className="w-4 h-4" />
+                    Dispatch
+                  </button>
+                )}
+                {canReject && (
+                  <button
+                    onClick={handleReject}
+                    disabled={updateStatus.isPending}
+                    className="flex items-center gap-2 px-4 py-2 bg-red text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Reject
+                  </button>
+                )}
               </>
             )}
-            {order.status === "dispatched" && (
+            {order.status === "dispatched" && canComplete && (
               <button
                 onClick={() => handleStatusChange("completed")}
                 disabled={updateStatus.isPending}
@@ -363,6 +407,82 @@ function OrderDetailDrawer({
             )}
           </div>
         </div>
+
+        {/* Receipt Print Only */}
+        <div className="receipt-print-only font-mono text-[10px] leading-tight text-black">
+            <div className="text-center font-bold text-sm mb-2 pb-2 border-b border-black border-dashed">
+              OM ENTERPRISES
+            </div>
+            
+            <div className="mb-3 space-y-1">
+              <div className="flex justify-between">
+                <span>Order No:</span>
+                <span className="font-bold">{order.order_number}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Date:</span>
+                <span>{formatDate(order.created_at)}</span>
+              </div>
+            </div>
+
+            <div className="mb-3 space-y-1 border-t border-b border-black border-dashed py-2">
+              <div className="font-bold">Customer Details:</div>
+              <div className="font-semibold">{order.party?.account_name || order.party_name}</div>
+              
+              {order.party && (order.party.address || order.party.city || order.party.state || order.party.pin_code) && (
+                <div>
+                  {[order.party.address, order.party.city, order.party.state, order.party.pin_code]
+                    .filter(Boolean)
+                    .join(", ")}
+                </div>
+              )}
+
+              {order.party?.phone1 && <div>Ph: {order.party.phone1}</div>}
+
+              {order.party && (order.party.delivery_city || order.party.transport) && (
+                <div className="mt-1 pt-1 border-t border-black border-dashed">
+                  <div className="font-bold">Shipping:</div>
+                  {order.party.delivery_city && <div>City: {order.party.delivery_city}</div>}
+                  {order.party.transport && <div>Transport: {order.party.transport}</div>}
+                </div>
+              )}
+
+              {order.agent_name && (
+                <div className="mt-1 pt-1 border-t border-black border-dashed">
+                  Agent: {order.agent_name}
+                </div>
+              )}
+            </div>
+
+            <div className="mb-2">
+              <div className="flex justify-between font-bold border-b border-black mb-1 pb-1">
+                <span>Item</span>
+                <span>Qty</span>
+              </div>
+              {order.items?.map((item) => (
+                <div key={item.id} className="flex justify-between mb-1">
+                  <span className="pr-2 whitespace-pre-wrap">{item.product_name}</span>
+                  <span className="whitespace-nowrap">{item.quantity}</span>
+                </div>
+              ))}
+              <div className="flex justify-between font-bold border-t border-black mt-2 pt-1">
+                <span>Total Items</span>
+                <span>{order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}</span>
+              </div>
+            </div>
+
+            {order.admin_notes && (
+              <div className="mt-3 pt-2 border-t border-black border-dashed">
+                <div className="font-bold">Notes:</div>
+                <div>{order.admin_notes}</div>
+              </div>
+            )}
+
+            <div className="mt-4 pt-2 border-t border-black text-center font-bold">
+              *** END OF ORDER ***
+            </div>
+          </div>
+        </div>
       )}
     </Drawer>
   );
@@ -372,7 +492,13 @@ function OrderDetailDrawer({
 
 export default function AdminOrdersPage() {
   const role = useAuthStore((state) => state.role);
+  const staff = useAuthStore((state) => state.staff);
   const isAdmin = role === "admin";
+
+  const canAccept = isAdmin || (role === "staff" && staff?.can_accept_order);
+  const canDispatch = isAdmin || (role === "staff" && staff?.can_dispatch_order);
+  const canComplete = isAdmin || (role === "staff" && staff?.can_complete_order);
+  const canReject = isAdmin || (role === "staff" && staff?.can_reject_order);
 
   const { data: orders, isLoading } = useOrders();
   const updateStatus = useUpdateOrderStatus();
@@ -406,7 +532,7 @@ export default function AdminOrdersPage() {
       result = result.filter(
         (o) =>
           o.order_number.toLowerCase().includes(q) ||
-          o.customer_name.toLowerCase().includes(q)
+          (o.party_name && o.party_name.toLowerCase().includes(q))
       );
     }
 
@@ -453,7 +579,8 @@ export default function AdminOrdersPage() {
   };
 
   return (
-    <div className="p-4 lg:p-6">
+    <>
+      <div className={cn("p-4 lg:p-6", drawerOrderId !== null && "no-print")}>
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-xl font-bold text-text-primary">Order Management</h1>
@@ -586,16 +713,13 @@ export default function AdminOrdersPage() {
                   Date
                 </th>
                 <th className="text-left px-4 py-3 text-text-muted font-medium">
-                  Customer
+                  Party
                 </th>
                 <th className="text-left px-4 py-3 text-text-muted font-medium">
-                  Phone
+                  Agent
                 </th>
                 <th className="text-center px-4 py-3 text-text-muted font-medium">
                   Items
-                </th>
-                <th className="text-right px-4 py-3 text-text-muted font-medium">
-                  Total
                 </th>
                 <th className="text-center px-4 py-3 text-text-muted font-medium">
                   Status
@@ -610,7 +734,7 @@ export default function AdminOrdersPage() {
                 <SkeletonRows />
               ) : filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-16">
+                  <td colSpan={7} className="text-center py-16">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-12 h-12 rounded-2xl bg-surface-hover flex items-center justify-center">
                         <FileText className="w-6 h-6 text-text-muted" />
@@ -632,7 +756,11 @@ export default function AdminOrdersPage() {
                 filteredOrders.map((order) => (
                   <tr
                     key={order.id}
-                    className="border-b border-border last:border-0 hover:bg-surface-hover/50 transition-colors"
+                    onClick={(e) => {
+                      if ((e.target as HTMLElement).closest("button")) return;
+                      setDrawerOrderId(order.id);
+                    }}
+                    className="border-b border-border last:border-0 hover:bg-surface-hover/50 transition-colors cursor-pointer"
                   >
                     <td className="px-4 py-3 font-medium text-text-primary">
                       {order.order_number}
@@ -641,16 +769,13 @@ export default function AdminOrdersPage() {
                       {formatDate(order.created_at)}
                     </td>
                     <td className="px-4 py-3 text-text-primary">
-                      {order.customer_name}
+                      {order.party_name}
                     </td>
                     <td className="px-4 py-3 text-text-muted">
-                      {order.customer_phone || "—"}
+                      {order.agent_name || "—"}
                     </td>
                     <td className="px-4 py-3 text-center text-text-muted">
                       {order.items?.length ?? 0}
-                    </td>
-                    <td className="px-4 py-3 text-right font-medium text-text-primary">
-                      {formatINR(order.total)}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <StatusBadge status={order.status} />
@@ -667,7 +792,7 @@ export default function AdminOrdersPage() {
                         </button>
 
                         {/* Accept */}
-                        {order.status === "pending" && (
+                        {order.status === "pending" && canAccept && (
                           <button
                             onClick={() =>
                               handleStatusChange(order.id, "accepted")
@@ -680,7 +805,7 @@ export default function AdminOrdersPage() {
                         )}
 
                         {/* Dispatch */}
-                        {order.status === "accepted" && (
+                        {order.status === "accepted" && canDispatch && (
                           <button
                             onClick={() =>
                               handleStatusChange(order.id, "dispatched")
@@ -693,7 +818,7 @@ export default function AdminOrdersPage() {
                         )}
 
                         {/* Complete */}
-                        {order.status === "dispatched" && (
+                        {order.status === "dispatched" && canComplete && (
                           <button
                             onClick={() =>
                               handleStatusChange(order.id, "completed")
@@ -707,7 +832,7 @@ export default function AdminOrdersPage() {
 
                         {/* Reject */}
                         {(order.status === "pending" ||
-                          order.status === "accepted") && (
+                          order.status === "accepted") && canReject && (
                           <button
                             onClick={() => handleReject(order.id)}
                             className="p-1.5 rounded-lg hover:bg-red-light text-red transition-colors"
@@ -759,7 +884,11 @@ export default function AdminOrdersPage() {
           filteredOrders.map((order) => (
             <div
               key={order.id}
-              className="bg-surface border border-border rounded-xl p-4 space-y-3"
+              onClick={(e) => {
+                if ((e.target as HTMLElement).closest("button")) return;
+                setDrawerOrderId(order.id);
+              }}
+              className="bg-surface border border-border rounded-xl p-4 space-y-3 cursor-pointer hover:border-primary/30 transition-colors"
             >
               {/* Top row: order number + status */}
               <div className="flex items-center justify-between">
@@ -769,14 +898,14 @@ export default function AdminOrdersPage() {
                 <StatusBadge status={order.status} />
               </div>
 
-              {/* Customer & date */}
+              {/* Party & date */}
               <div className="space-y-1">
                 <p className="text-sm text-text-primary">
-                  {order.customer_name}
+                  {order.party_name}
                 </p>
                 <div className="flex items-center gap-3 text-xs text-text-muted">
                   <span>{formatDate(order.created_at)}</span>
-                  {order.customer_phone && <span>{order.customer_phone}</span>}
+                  {order.agent_name && <span>Agent: {order.agent_name}</span>}
                 </div>
               </div>
 
@@ -785,9 +914,6 @@ export default function AdminOrdersPage() {
                 <span className="text-xs text-text-muted">
                   {order.items?.length ?? 0} item
                   {(order.items?.length ?? 0) !== 1 ? "s" : ""}
-                </span>
-                <span className="text-sm font-bold text-text-primary">
-                  {formatINR(order.total)}
                 </span>
               </div>
 
@@ -801,7 +927,7 @@ export default function AdminOrdersPage() {
                   <Eye className="w-4 h-4" />
                 </button>
 
-                {order.status === "pending" && (
+                {order.status === "pending" && canAccept && (
                   <button
                     onClick={() => handleStatusChange(order.id, "accepted")}
                     className="p-2 rounded-lg hover:bg-blue/10 text-blue transition-colors"
@@ -811,7 +937,7 @@ export default function AdminOrdersPage() {
                   </button>
                 )}
 
-                {order.status === "accepted" && (
+                {order.status === "accepted" && canDispatch && (
                   <button
                     onClick={() => handleStatusChange(order.id, "dispatched")}
                     className="p-2 rounded-lg hover:bg-purple/10 text-purple transition-colors"
@@ -821,7 +947,7 @@ export default function AdminOrdersPage() {
                   </button>
                 )}
 
-                {order.status === "dispatched" && (
+                {order.status === "dispatched" && canComplete && (
                   <button
                     onClick={() => handleStatusChange(order.id, "completed")}
                     className="p-2 rounded-lg hover:bg-green-light text-green transition-colors"
@@ -831,8 +957,7 @@ export default function AdminOrdersPage() {
                   </button>
                 )}
 
-                {(order.status === "pending" ||
-                  order.status === "accepted") && (
+                {(order.status === "pending" || order.status === "accepted") && canReject && (
                   <button
                     onClick={() => handleReject(order.id)}
                     className="p-2 rounded-lg hover:bg-red-light text-red transition-colors"
@@ -856,13 +981,14 @@ export default function AdminOrdersPage() {
           ))
         )}
       </div>
+      </div>
 
-      {/* Order detail drawer */}
+      {/* Detail Drawer */}
       <OrderDetailDrawer
         orderId={drawerOrderId}
-        open={!!drawerOrderId}
+        open={drawerOrderId !== null}
         onClose={() => setDrawerOrderId(null)}
       />
-    </div>
+    </>
   );
 }

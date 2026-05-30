@@ -4,7 +4,7 @@ import fitz
 import os
 
 PDF_PATH = r"C:\Users\Sumit singhvi\Downloads\BSCatalogueFinal2026.pdf"
-OUTPUT_DIR = r"d:\work\thebabystepsOrderSystem\scripts\pdf_samples"
+OUTPUT_DIR = r"d:\work\OmEnterprisesOMS\scripts\pdf_samples"
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 

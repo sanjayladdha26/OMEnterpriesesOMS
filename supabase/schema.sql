@@ -1,5 +1,5 @@
 -- ============================================================
--- TheBabySteps Order System — Database Schema
+-- OM Order System — Database Schema
 -- Run this in your Supabase SQL Editor for fresh setup
 -- ============================================================
 

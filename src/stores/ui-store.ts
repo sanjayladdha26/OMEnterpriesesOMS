@@ -12,6 +12,9 @@ export type DrawerContent =
   | "edit-customer"
   | "add-payment"
   | "add-staff"
+  | "edit-staff"
+  | "add-agent"
+  | "edit-agent"
   | null;
 
 interface UIState {

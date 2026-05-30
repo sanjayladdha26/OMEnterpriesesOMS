@@ -1,24 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Search, ImageIcon, ZoomIn } from "lucide-react";
-import { useProducts, useCategories } from "@/lib/hooks";
-import { formatINR } from "@/lib/utils";
+import { Search } from "lucide-react";
+import { useProducts } from "@/lib/hooks";
 import type { Product } from "@/types/database";
 import { QuantityInputModal } from "./quantity-input-modal";
-import { ImageViewerModal } from "../ui/image-viewer-modal";
 
 export function ProductSelector() {
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [viewingImageProduct, setViewingImageProduct] = useState<Product | null>(null);
   const { data: products, isLoading } = useProducts();
-  const { data: categories } = useCategories();
   const productData = products || [];
 
   const filtered = productData.filter((p) => {
-    if (selectedCategory !== "All" && p.category !== selectedCategory) return false;
     if (!search) return true;
     const term = search.toLowerCase();
     return p.name.toLowerCase().includes(term) || (p.sku_name && p.sku_name.toLowerCase().includes(term));
@@ -36,33 +30,6 @@ export function ProductSelector() {
           onChange={(e) => setSearch(e.target.value)}
           className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl bg-surface text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
         />
-      </div>
-
-      {/* Category Tags */}
-      <div className="flex gap-2.5 overflow-x-auto pb-3 pt-1 px-1 -mx-1 mb-3 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        <button
-          onClick={() => setSelectedCategory("All")}
-          className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 ${
-            selectedCategory === "All"
-              ? "bg-primary text-white shadow-md ring-2 ring-primary/20 ring-offset-2 ring-offset-background scale-105"
-              : "bg-surface shadow-sm border border-border/40 text-text-muted hover:border-primary/30 hover:bg-primary/5 hover:text-primary hover:-translate-y-0.5"
-          }`}
-        >
-          All
-        </button>
-        {categories?.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setSelectedCategory(cat.name)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 ${
-              selectedCategory === cat.name
-                ? "bg-primary text-white shadow-md ring-2 ring-primary/20 ring-offset-2 ring-offset-background scale-105"
-                : "bg-surface shadow-sm border border-border/40 text-text-muted hover:border-primary/30 hover:bg-primary/5 hover:text-primary hover:-translate-y-0.5"
-            }`}
-          >
-            {cat.name}
-          </button>
-        ))}
       </div>
 
       {/* Product Grid */}
@@ -83,50 +50,16 @@ export function ProductSelector() {
                 tabIndex={0}
                 className="bg-surface border border-border rounded-xl overflow-hidden text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group flex flex-col cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
-                {/* Product Image */}
-                {product.image_url ? (
-                  <div className="relative w-full h-28 bg-surface overflow-hidden group/image">
-                    <img
-                      src={product.image_url}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setViewingImageProduct(product);
-                      }}
-                      className="absolute top-2 right-2 p-1.5 bg-black/40 hover:bg-black/60 rounded-full text-white backdrop-blur-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity shadow-sm z-10 pointer-events-auto"
-                    >
-                      <ZoomIn className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="relative w-full h-28 bg-surface/80 border-b border-border flex items-center justify-center overflow-hidden">
-                    <ImageIcon className="w-8 h-8 text-text-muted/30 group-hover:scale-110 transition-transform duration-300" />
-                  </div>
-                )}
-
                 {/* Product Info */}
-                <div className="p-3">
+                <div className="p-4">
                   <h3 className="text-sm font-semibold text-text-primary leading-tight group-hover:text-primary transition-colors">
                     {product.name}
-                    {product.sku_name && <span className="ml-1 text-xs text-text-muted font-normal">({product.sku_name})</span>}
                   </h3>
-                  {product.description && (
-                    <p className="text-[11px] text-text-muted mt-0.5 line-clamp-1">
-                      {product.description}
+                  {product.sku_name && (
+                    <p className="text-xs text-text-muted mt-1">
+                      {product.sku_name}
                     </p>
                   )}
-                  <p className="text-xs text-text-muted mt-0.5">
-                    {product.category}
-                  </p>
-                  <div className="mt-1.5">
-                    <span className="text-sm font-bold text-primary">
-                      {formatINR(product.price_per_unit)}
-                        /{product.unit === "piece" ? "pc" : product.unit}
-                    </span>
-                  </div>
                 </div>
               </div>
             );
@@ -152,15 +85,6 @@ export function ProductSelector() {
         <QuantityInputModal
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
-        />
-      )}
-
-      {/* Image Viewer Modal */}
-      {viewingImageProduct && (
-        <ImageViewerModal
-          imageUrl={viewingImageProduct.image_url}
-          altText={viewingImageProduct.name}
-          onClose={() => setViewingImageProduct(null)}
         />
       )}
     </div>

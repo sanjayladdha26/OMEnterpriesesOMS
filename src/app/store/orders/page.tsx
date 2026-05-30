@@ -1,8 +1,7 @@
 "use client";
 
-import { useCustomerProfileStore } from "@/stores/customer-profile-store";
-import { useCustomerOrders } from "@/lib/hooks";
-import { formatINR } from "@/lib/utils";
+import { useAuthStore } from "@/stores/auth-store";
+import { useAgentOrders, useOrders, usePartyOrders } from "@/lib/hooks";
 import Link from "next/link";
 import { FileText, Loader2, Package, Check, Truck, XCircle } from "lucide-react";
 import type { Order } from "@/types/database";
@@ -92,24 +91,31 @@ function OrderStatusStepper({ status }: { status: OrderStatusType }) {
 }
 
 export default function StoreOrdersPage() {
-  const { customerId } = useCustomerProfileStore();
-  const { data: orders, isLoading } = useCustomerOrders(customerId);
+  const { role, agent, party } = useAuthStore();
+  
+  // If admin, they see all orders. If agent, they see their orders. If party, they see their orders.
+  const { data: agentOrders, isLoading: isAgentLoading } = useAgentOrders(agent?.id || "");
+  const { data: allOrders, isLoading: isAllLoading } = useOrders();
+  const { data: partyOrders, isLoading: isPartyLoading } = usePartyOrders(party?.id || "");
+  
+  const isLoading = role === "admin" ? isAllLoading : role === "party" ? isPartyLoading : isAgentLoading;
+  const orders = role === "admin" ? allOrders : role === "party" ? partyOrders : agentOrders;
 
-  if (!customerId) {
+  if (!role) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-background">
         <div className="w-16 h-16 bg-surface border border-border rounded-full flex items-center justify-center mb-4">
           <FileText className="w-8 h-8 text-text-muted" />
         </div>
-        <h2 className="text-xl font-bold mb-2">No Profile Found</h2>
+        <h2 className="text-xl font-bold mb-2">Not Logged In</h2>
         <p className="text-sm text-text-muted mb-6 max-w-sm">
-          Please set up your profile with your details to view your orders.
+          Please log in to view orders.
         </p>
         <Link
-          href="/store/profile"
+          href="/login"
           className="px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
         >
-          Setup Profile
+          Go to Login
         </Link>
       </div>
     );
@@ -119,17 +125,21 @@ export default function StoreOrdersPage() {
     <div className="p-4 lg:p-8 max-w-4xl mx-auto min-h-screen">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">My Orders</h1>
+          <h1 className="text-2xl font-bold text-text-primary">
+            {role === "admin" ? "All Orders" : "My Orders"}
+          </h1>
           <p className="text-sm text-text-muted mt-1">
             Track the status of your orders
           </p>
         </div>
-        <Link
-          href="/store"
-          className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
-        >
-          New Order
-        </Link>
+        {(role === "agent" || role === "party") && (
+          <Link
+            href="/store"
+            className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+          >
+            New Order
+          </Link>
+        )}
       </div>
 
       {isLoading ? (
@@ -160,7 +170,10 @@ export default function StoreOrdersPage() {
                 <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-4 mb-2">
                   <div>
                     <h3 className="font-semibold text-lg text-text-primary">{order.order_number}</h3>
-                    <p className="text-sm text-text-muted">
+                    <p className="text-sm font-medium text-text-primary mt-1">
+                      Party: <span className="font-bold">{order.party_name}</span>
+                    </p>
+                    <p className="text-sm text-text-muted mt-0.5">
                       {new Date(order.created_at).toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
@@ -171,7 +184,6 @@ export default function StoreOrdersPage() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-primary">{formatINR(order.total)}</p>
                     <span
                       className={`inline-block px-2.5 py-1 text-xs font-medium rounded-full mt-1 ${config.badgeClass}`}
                     >
@@ -197,10 +209,13 @@ export default function StoreOrdersPage() {
                   <div className="space-y-2">
                     {order.items?.map((item) => (
                       <div key={item.product_id} className="flex justify-between text-sm">
-                        <span className="text-text-primary">
-                          {item.quantity} × {item.product_name}
+                        <span className="text-text-primary flex flex-col">
+                          <span>{item.quantity} × {item.product_name}</span>
+                          {/* @ts-ignore */}
+                          {item.products?.sku_name && (
+                            <span className="text-xs text-text-muted">{item.products.sku_name}</span>
+                          )}
                         </span>
-                        <span className="font-medium text-text-primary">{formatINR(item.subtotal)}</span>
                       </div>
                     ))}
                   </div>

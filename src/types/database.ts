@@ -1,5 +1,5 @@
 // ============================================================
-// TheBabySteps Order System — Database Types
+// OM Order System — Database Types
 // ============================================================
 
 export type OrderStatus = "pending" | "accepted" | "dispatched" | "completed" | "rejected";
@@ -21,22 +21,58 @@ export interface Product {
   id: string;
   name: string;
   sku_name?: string | null;
-  category: string;
+  category?: string;
   price_per_unit: number;
-  unit: Unit;
-  image_url?: string | null;
+  unit: string;
   description?: string | null;
   created_at: string;
 }
 
-// ── Customers ───────────────────────────────────────────────
+// ── Staff ───────────────────────────────────────────────────
 
-export interface Customer {
+export interface Staff {
   id: string;
   name: string;
-  phone: string;
-  address: string;
-  school_name?: string;
+  code: string;
+  can_create_order: boolean;
+  can_accept_order: boolean;
+  can_dispatch_order: boolean;
+  can_complete_order: boolean;
+  can_reject_order: boolean;
+  can_view_orders?: boolean;
+  can_view_inventory?: boolean;
+  can_view_agents?: boolean;
+  can_view_staff?: boolean;
+  is_admin: boolean;
+  created_at: string;
+}
+
+// ── Agents ──────────────────────────────────────────────────
+
+export interface Agent {
+  id: string;
+  name: string;
+  code: string;
+  phone?: string | null;
+  created_at: string;
+}
+
+// ── Parties ─────────────────────────────────────────────────
+
+export interface Party {
+  id: string;
+  account_name: string;
+  access_code?: string | null;
+  address?: string | null;
+  city?: string | null;
+  pin_code?: string | null;
+  state?: string | null;
+  gstin?: string | null;
+  phone1?: string | null;
+  phone2?: string | null;
+  transport?: string | null;
+  delivery_city?: string | null;
+  agent_id?: string | null;
   created_at: string;
 }
 
@@ -48,21 +84,17 @@ export interface OrderItem {
   product_id: string;
   product_name: string;
   quantity: number;
-  unit: Unit;
-  unit_price: number;
-  subtotal: number;
 }
 
 export interface Order {
   id: string;
   order_number: string;
-  customer_id: string | null;
-  customer_name: string;
-  customer_phone?: string | null;
-  customers?: { address?: string; school_name?: string } | null;
+  party_id: string | null;
+  party_name: string;
+  agent_id: string | null;
+  agent_name: string;
   items: OrderItem[];
-  subtotal: number;
-  total: number;
+  party?: Party | null;
   status: OrderStatus;
   admin_notes?: string;
   created_at: string;
@@ -76,8 +108,4 @@ export interface CartItem {
   product_id: string;
   product_name: string;
   quantity: number;
-  unit: Unit;
-  unit_price: number;
-  subtotal: number;
-  image_url?: string | null;
 }

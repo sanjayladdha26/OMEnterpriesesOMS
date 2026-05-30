@@ -2,19 +2,75 @@
 
 import { useState } from "react";
 import { useAuthStore } from "@/stores/auth-store";
-import { Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import { Lock, ArrowRight } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import type { Agent, Party } from "@/types/database";
 
 export function LoginScreen() {
   const [code, setCode] = useState("");
   const [error, setError] = useState(false);
-  const login = useAuthStore((state) => state.login);
+  const [loading, setLoading] = useState(false);
+  const { loginAgent, loginStaff, loginParty } = useAuthStore();
+  const supabase = createClient();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = login(code);
-    if (!success) {
+    if (!code) return;
+
+    setLoading(true);
+    setError(false);
+
+    try {
+      // First try to find an agent
+      const { data: agents, error: dbError } = await supabase
+        .from("agents")
+        .select("*")
+        .eq("code", code)
+        .limit(1);
+
+      if (!dbError && agents && agents.length > 0) {
+        loginAgent(agents[0] as Agent);
+        window.location.href = "/store";
+        return;
+      }
+
+      // If not an agent, try to find in staff
+      const { data: staffData, error: staffError } = await supabase
+        .from("staff")
+        .select("*")
+        .eq("code", code)
+        .limit(1);
+
+      if (!staffError && staffData && staffData.length > 0) {
+        const staffMember = staffData[0];
+        loginStaff(staffMember);
+        
+        window.location.href = "/admin";
+        return;
+      }
+
+      // Try to find in parties
+      const { data: partyData, error: partyError } = await supabase
+        .from("parties")
+        .select("*")
+        .eq("access_code", code)
+        .limit(1);
+
+      if (!partyError && partyData && partyData.length > 0) {
+        loginParty(partyData[0] as Party);
+        window.location.href = "/store";
+        return;
+      }
+
+      // If neither, show error
       setError(true);
       setTimeout(() => setError(false), 3000);
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(true);
+      setTimeout(() => setError(false), 3000);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -27,7 +83,7 @@ export function LoginScreen() {
       <div className="relative z-10 w-full max-w-md p-8 sm:p-12">
         <div className="mb-10 text-center">
           <div className="mx-auto h-20 w-auto flex items-center justify-center mb-6">
-            <img src="/image.png" alt="Logo" className="h-full w-auto object-contain" />
+            <img src="/image.jpg" alt="Logo" className="h-full w-auto object-contain" />
           </div>
           <p className="text-zinc-400 text-sm">Enter your access code to continue</p>
         </div>
@@ -49,6 +105,7 @@ export function LoginScreen() {
                   error ? "focus:ring-red-500/10" : "focus:ring-[var(--color-pink)]/10"
                 } transition-all backdrop-blur-xl`}
                 autoFocus
+                disabled={loading}
               />
             </div>
             {error && (
@@ -60,16 +117,17 @@ export function LoginScreen() {
 
           <button
             type="submit"
-            className="w-full bg-primary hover:bg-primary-dark text-white rounded-xl py-4 font-medium transition-all active:scale-[0.98] flex items-center justify-center gap-2 group shadow-[0_0_20px_-5px_rgba(74,144,226,0.4)] hover:shadow-[0_0_30px_-5px_rgba(74,144,226,0.6)] mt-2"
+            disabled={loading}
+            className="w-full bg-primary hover:bg-primary-dark disabled:opacity-50 text-white rounded-xl py-4 font-medium transition-all active:scale-[0.98] flex items-center justify-center gap-2 group shadow-[0_0_20px_-5px_rgba(74,144,226,0.4)] hover:shadow-[0_0_30px_-5px_rgba(74,144,226,0.6)] mt-2"
           >
-            <span>Unlock Access</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <span>{loading ? "Verifying..." : "Unlock Access"}</span>
+            {!loading && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
           </button>
         </form>
         
         <div className="mt-12 text-center">
           <p className="text-xs text-zinc-600">
-            Baby Steps Order System &copy; {new Date().getFullYear()}
+            OM Order System &copy; {new Date().getFullYear()}
           </p>
         </div>
       </div>

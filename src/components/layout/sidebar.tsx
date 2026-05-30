@@ -8,23 +8,49 @@ import {
   X,
   FileText,
   LogOut,
+  Users,
+  Shield,
+  ShoppingCart,
 } from "lucide-react";
 import { useUIStore } from "@/stores/ui-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  { href: "/admin/orders", label: "Orders", icon: FileText },
-  { href: "/admin/inventory", label: "Inventory", icon: Package },
-];
-
 export function Sidebar() {
   const pathname = usePathname();
   const { sidebarOpen, toggleSidebar, setSidebarOpen } = useUIStore();
   const role = useAuthStore((state) => state.role);
+  const staff = useAuthStore((state) => state.staff);
   const logout = useAuthStore((state) => state.logout);
 
-  if (!role) return null;
+  if (!role || role === "agent") return null;
+
+  const navItems = [];
+  if (role === "admin") {
+    navItems.push(
+      { href: "/admin/orders", label: "Orders", icon: FileText },
+      { href: "/admin/inventory", label: "Inventory", icon: Package },
+      { href: "/admin/agents", label: "Agents", icon: Users },
+      { href: "/admin/staff", label: "Staff", icon: Shield },
+      { href: "/admin/new-order", label: "New Order", icon: ShoppingCart }
+    );
+  } else if (role === "staff") {
+    if (staff?.can_update_status || staff?.can_view_orders) {
+      navItems.push({ href: "/admin/orders", label: "Orders", icon: FileText });
+    }
+    if (staff?.can_view_inventory) {
+      navItems.push({ href: "/admin/inventory", label: "Inventory", icon: Package });
+    }
+    if (staff?.can_view_agents) {
+      navItems.push({ href: "/admin/agents", label: "Agents", icon: Users });
+    }
+    if (staff?.can_view_staff) {
+      navItems.push({ href: "/admin/staff", label: "Staff", icon: Shield });
+    }
+    if (staff?.can_create_order) {
+      navItems.push({ href: "/admin/new-order", label: "New Order", icon: ShoppingCart });
+    }
+  }
 
   return (
     <>
@@ -59,7 +85,7 @@ export function Sidebar() {
         )}
       >
         <div className="px-5 py-6 border-b border-border flex items-center justify-center min-h-[88px] bg-white">
-          <img src="/image.png" alt="Logo" className="w-full max-w-[160px] h-auto object-contain" />
+          <img src="/image.jpg" alt="Logo" className="w-full max-w-[160px] h-auto object-contain" />
         </div>
 
         {/* Nav */}
@@ -94,7 +120,7 @@ export function Sidebar() {
             Logged in as <span className="font-semibold capitalize">{role}</span>
           </p>
           <button
-            onClick={() => { logout(); setSidebarOpen(false); }}
+            onClick={() => { logout(); setSidebarOpen(false); window.location.href = "/"; }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red hover:bg-red-light transition-colors"
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />

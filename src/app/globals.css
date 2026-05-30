@@ -15,16 +15,16 @@
   --color-sb: #FFFFFF;
   --color-sb-hv: #F1F5F9;
 
-  /* Baby Blue */
-  --p: #4B8CE6;
-  --p-light: #EFF6FF;
-  --p-dark: #3B75C7;
-  --p-50: #EFF6FF;
-  --p-100: #DBEAFE;
-  --p-200: #BFDBFE;
-  --p-600: #3B75C7;
-  --p-700: #295B9C;
-  --p-800: #1D4378;
+  /* Saffron Orange (from OM logo) */
+  --p: #EA580C;
+  --p-light: #FFF7ED;
+  --p-dark: #C2410C;
+  --p-50: #FFF7ED;
+  --p-100: #FFEDD5;
+  --p-200: #FED7AA;
+  --p-600: #EA580C;
+  --p-700: #C2410C;
+  --p-800: #9A3412;
   
   --a: #F59E0B;
   --a-light: #FEF3C7;
@@ -60,15 +60,15 @@
   --color-sb: #0F172A;
   --color-sb-hv: #1E293B;
 
-  --p: #60A5FA;
-  --p-light: #1E3A8A;
-  --p-dark: #93C5FD;
-  --p-50: #0B192C;
-  --p-100: #12294A;
-  --p-200: #1E3A8A;
-  --p-600: #3B82F6;
-  --p-700: #2563EB;
-  --p-800: #1D4ED8;
+  --p: #F97316;
+  --p-light: #431407;
+  --p-dark: #FB923C;
+  --p-50: #431407;
+  --p-100: #7C2D12;
+  --p-200: #9A3412;
+  --p-600: #EA580C;
+  --p-700: #C2410C;
+  --p-800: #9A3412;
   
   --a: #FBBF24;
   --a-light: #422006;

@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "./supabase/client";
 import type {
   Product,
-  Customer,
   Order,
   Category,
 } from "@/types/database";
@@ -42,17 +41,216 @@ export function useProducts() {
   });
 }
 
-export function useCustomers() {
+// ── Agents ───────────────────────────────────────────────────
+
+export function useAgents() {
   const supabase = useSupabase();
   return useQuery({
-    queryKey: ["customers"],
+    queryKey: ["agents"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("customers")
+        .from("agents")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("name", { ascending: true });
       if (error) throw error;
-      return data as Customer[];
+      return data as import("@/types/database").Agent[];
+    },
+  });
+}
+
+// ── Staff ────────────────────────────────────────────────────
+
+export function useStaff() {
+  const supabase = useSupabase();
+  return useQuery({
+    queryKey: ["staff"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("staff")
+        .select("*")
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return data as import("@/types/database").Staff[];
+    },
+  });
+}
+
+export function useCreateStaff() {
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newStaff: Omit<import("@/types/database").Staff, "id" | "created_at">) => {
+      const { data, error } = await supabase
+        .from("staff")
+        .insert([newStaff])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
+    },
+  });
+}
+
+export function useUpdateStaff() {
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updateData }: Partial<import("@/types/database").Staff> & { id: string }) => {
+      const { data, error } = await supabase
+        .from("staff")
+        .update(updateData)
+        .eq("id", id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
+    },
+  });
+}
+
+export function useDeleteStaff() {
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("staff")
+        .delete()
+        .eq("id", id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
+    },
+  });
+}
+
+// ── Parties ──────────────────────────────────────────────────
+
+export function useParties() {
+  const supabase = useSupabase();
+  return useQuery({
+    queryKey: ["parties"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("parties")
+        .select("*")
+        .order("account_name", { ascending: true });
+      if (error) throw error;
+      return data as import("@/types/database").Party[];
+    },
+  });
+}
+
+export function useAgentParties(agentId: string) {
+  const supabase = useSupabase();
+  return useQuery({
+    queryKey: ["agent-parties", agentId],
+    queryFn: async () => {
+      if (!agentId) return [];
+      const { data, error } = await supabase
+        .from("parties")
+        .select("*")
+        .eq("agent_id", agentId)
+        .order("account_name", { ascending: true });
+      if (error) throw error;
+      return data as import("@/types/database").Party[];
+    },
+    enabled: !!agentId,
+  });
+}
+
+export function useParty(id: string) {
+  const supabase = useSupabase();
+  return useQuery({
+    queryKey: ["party", id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from("parties")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error) throw error;
+      return data as import("@/types/database").Party;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useCreateParty() {
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newParty: Omit<import("@/types/database").Party, "id" | "created_at">) => {
+      const { data, error } = await supabase
+        .from("parties")
+        .insert([newParty])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["parties"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-parties"] });
+    },
+  });
+}
+
+export function useUpdateParty() {
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updateData }: Partial<import("@/types/database").Party> & { id: string }) => {
+      const { data, error } = await supabase
+        .from("parties")
+        .update(updateData)
+        .eq("id", id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["parties"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-parties"] });
+    },
+  });
+}
+
+export function useDeleteParty() {
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("parties")
+        .delete()
+        .eq("id", id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["parties"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-parties"] });
     },
   });
 }
@@ -66,7 +264,7 @@ export function useOrders() {
     queryFn: async () => {
       const { data: orders, error } = await supabase
         .from("orders")
-        .select("*")
+        .select("*, items:order_items(*, products(sku_name))")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return orders as Order[];
@@ -77,21 +275,42 @@ export function useOrders() {
   });
 }
 
-export function useCustomerOrders(customerId: string) {
+export function useAgentOrders(agentId: string) {
   const supabase = useSupabase();
   return useQuery({
-    queryKey: ["customer-orders", customerId],
+    queryKey: ["agent-orders", agentId],
     queryFn: async () => {
-      if (!customerId) return [];
+      if (!agentId) return [];
       const { data: orders, error } = await supabase
         .from("orders")
-        .select("*")
-        .eq("customer_id", customerId)
+        .select("*, items:order_items(*, products(sku_name))")
+        .eq("agent_id", agentId)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return orders as Order[];
     },
-    enabled: !!customerId,
+    enabled: !!agentId,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  });
+}
+
+export function usePartyOrders(partyId: string) {
+  const supabase = useSupabase();
+  return useQuery({
+    queryKey: ["party-orders", partyId],
+    queryFn: async () => {
+      if (!partyId) return [];
+      const { data: orders, error } = await supabase
+        .from("orders")
+        .select("*, items:order_items(*, products(sku_name))")
+        .eq("party_id", partyId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return orders as Order[];
+    },
+    enabled: !!partyId,
     staleTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
@@ -106,7 +325,7 @@ export function useOrderDetails(orderId: string | null) {
       if (!orderId) return null;
       const { data: order, error } = await supabase
         .from("orders")
-        .select("*, customers ( address, school_name )")
+        .select("*")
         .eq("id", orderId)
         .single();
 
@@ -114,12 +333,22 @@ export function useOrderDetails(orderId: string | null) {
 
       const { data: items, error: itemsError } = await supabase
         .from("order_items")
-        .select("*")
+        .select("*, products(sku_name)")
         .eq("order_id", orderId);
 
       if (itemsError) throw itemsError;
 
-      return { ...order, items } as Order;
+      let party = null;
+      if (order.party_id) {
+        const { data: partyData } = await supabase
+          .from("parties")
+          .select("*")
+          .eq("id", order.party_id)
+          .single();
+        party = partyData || null;
+      }
+
+      return { ...order, items, party } as Order;
     },
     enabled: !!orderId,
     staleTime: 0,
@@ -170,17 +399,16 @@ export function useUpdateOrderStatus() {
       status: string;
       adminNotes?: string;
     }) => {
-      const { error } = await supabase.rpc("update_order_status", {
-        p_order_id: orderId,
-        p_status: status,
-        p_admin_notes: adminNotes || null,
-      });
+      const { error } = await supabase.from("orders").update({
+        status: status,
+        admin_notes: adminNotes || null,
+      }).eq("id", orderId);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       queryClient.invalidateQueries({ queryKey: ["order"] });
-      queryClient.invalidateQueries({ queryKey: ["customer-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-orders"] });
     },
   });
 }
@@ -191,14 +419,12 @@ export function useDeleteOrder() {
 
   return useMutation({
     mutationFn: async (orderId: string) => {
-      const { error } = await supabase.rpc("delete_order", {
-        p_order_id: orderId,
-      });
+      const { error } = await supabase.from("orders").delete().eq("id", orderId);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
-      queryClient.invalidateQueries({ queryKey: ["customer-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-orders"] });
     },
   });
 }

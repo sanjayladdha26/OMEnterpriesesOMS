@@ -250,7 +250,7 @@ def main():
             print(f"  - {u['name']} (image: {u['image_name']})")
     
     # Save results to JSON for review
-    output_path = r"d:\work\thebabystepsOrderSystem\scripts\extraction_results.json"
+    output_path = r"d:\work\OmEnterprisesOMS\scripts\extraction_results.json"
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump({'matched': update_data, 'unmatched': unmatched}, f, indent=2, ensure_ascii=False)
     print(f"\nResults saved to {output_path}")

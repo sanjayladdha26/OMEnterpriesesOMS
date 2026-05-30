@@ -5,16 +5,15 @@ import { Send, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/stores/cart-store";
-import { formatINR } from "@/lib/utils";
+import { useAuthStore } from "@/stores/auth-store";
 import type { Order } from "@/types/database";
 
 interface OrderSubmitBarProps {
-  total: number;
   orderNumber: string;
   onOrderSaved: (order: Order) => void;
 }
 
-export function OrderSubmitBar({ total, orderNumber, onOrderSaved }: OrderSubmitBarProps) {
+export function OrderSubmitBar({ orderNumber, onOrderSaved }: OrderSubmitBarProps) {
   const { createOrder, saving } = useCartStore();
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -24,10 +23,16 @@ export function OrderSubmitBar({ total, orderNumber, onOrderSaved }: OrderSubmit
     if (!orderNumber) return;
     setError(null);
 
-    // Require customer profile
-    if (!useCartStore.getState().customer_id || !useCartStore.getState().customer_name || useCartStore.getState().customer_name === "Guest") {
-      setError("Please set up your profile before placing an order.");
-      router.push("/store/profile");
+    // Require party to be selected
+    const cartState = useCartStore.getState();
+    const authState = useAuthStore.getState();
+    const isPartyRole = authState.role === "party";
+    const hasPartyDetails = isPartyRole 
+      ? (!!authState.party?.id) 
+      : (!!cartState.party_id && !!cartState.party_name);
+
+    if (!hasPartyDetails) {
+      setError("Please select a party before placing an order.");
       return;
     }
 
@@ -35,7 +40,7 @@ export function OrderSubmitBar({ total, orderNumber, onOrderSaved }: OrderSubmit
       const savedOrder = await createOrder(orderNumber);
       if (savedOrder) {
         queryClient.invalidateQueries({ queryKey: ["orders"] });
-        queryClient.invalidateQueries({ queryKey: ["customer-orders"] });
+        queryClient.invalidateQueries({ queryKey: ["agent-orders"] });
         queryClient.invalidateQueries({ queryKey: ["nextOrderNumber"] });
 
         onOrderSaved(savedOrder);
@@ -67,7 +72,7 @@ export function OrderSubmitBar({ total, orderNumber, onOrderSaved }: OrderSubmit
         ) : (
           <>
             <Send className="w-5 h-5" />
-            Place Order — {formatINR(total)}
+            Place Order
           </>
         )}
       </button>
