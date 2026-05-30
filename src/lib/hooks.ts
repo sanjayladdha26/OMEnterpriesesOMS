@@ -401,6 +401,31 @@ export function useUpdateOrderStatus() {
     }) => {
       const { error } = await supabase.from("orders").update({
         status: status,
+        ...(adminNotes !== undefined && { admin_notes: adminNotes || null }),
+      }).eq("id", orderId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["order"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-orders"] });
+    },
+  });
+}
+
+export function useUpdateOrderNote() {
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      orderId,
+      adminNotes,
+    }: {
+      orderId: string;
+      adminNotes: string;
+    }) => {
+      const { error } = await supabase.from("orders").update({
         admin_notes: adminNotes || null,
       }).eq("id", orderId);
       if (error) throw error;

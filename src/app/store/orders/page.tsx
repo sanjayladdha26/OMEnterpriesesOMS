@@ -208,14 +208,19 @@ export default function StoreOrdersPage() {
                   <h4 className="text-sm font-medium text-text-muted mb-2">Items</h4>
                   <div className="space-y-2">
                     {order.items?.map((item) => (
-                      <div key={item.product_id} className="flex justify-between text-sm">
-                        <span className="text-text-primary flex flex-col">
-                          <span>{item.quantity} × {item.product_name}</span>
-                          {/* @ts-ignore */}
-                          {item.products?.sku_name && (
-                            <span className="text-xs text-text-muted">{item.products.sku_name}</span>
-                          )}
-                        </span>
+                      <div key={item.product_id} className="flex flex-col text-sm border-b border-border/50 pb-2 last:border-0 last:pb-0">
+                        <div className="flex justify-between">
+                          <span className="text-text-primary flex flex-col">
+                            <span>{item.quantity} × {item.product_name}</span>
+                            {/* @ts-ignore */}
+                            {item.products?.sku_name && (
+                              <span className="text-xs text-text-muted">{item.products.sku_name}</span>
+                            )}
+                          </span>
+                        </div>
+                        {item.note && (
+                          <span className="text-xs text-text-muted mt-1 italic">Note: {item.note}</span>
+                        )}
                       </div>
                     ))}
                   </div>

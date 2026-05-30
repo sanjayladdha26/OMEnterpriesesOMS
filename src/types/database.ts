@@ -84,6 +84,7 @@ export interface OrderItem {
   product_id: string;
   product_name: string;
   quantity: number;
+  note?: string;
 }
 
 export interface Order {
@@ -108,4 +109,5 @@ export interface CartItem {
   product_id: string;
   product_name: string;
   quantity: number;
+  note?: string;
 }

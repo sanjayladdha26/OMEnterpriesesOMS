@@ -18,6 +18,7 @@ import {
 import {
   useOrders,
   useUpdateOrderStatus,
+  useUpdateOrderNote,
   useDeleteOrder,
   useOrderDetails,
 } from "@/lib/hooks";
@@ -180,6 +181,7 @@ function OrderDetailDrawer({
 }) {
   const { data: order, isLoading } = useOrderDetails(orderId);
   const updateStatus = useUpdateOrderStatus();
+  const updateNote = useUpdateOrderNote();
   const role = useAuthStore((state) => state.role);
   const staff = useAuthStore((state) => state.staff);
   const isAdmin = role === "admin";
@@ -319,6 +321,9 @@ function OrderDetailDrawer({
                         {item.products?.sku_name && (
                           <div className="text-xs text-text-muted mt-0.5">{item.products.sku_name}</div>
                         )}
+                        {item.note && (
+                          <div className="text-xs text-text-muted mt-0.5 italic">Note: {item.note}</div>
+                        )}
                       </td>
                       <td className="px-3 py-2 text-right text-text-primary">
                         {item.quantity}
@@ -331,10 +336,28 @@ function OrderDetailDrawer({
           </div>
 
           {/* Admin notes */}
-          {order.admin_notes && (
-            <div className="bg-amber-light rounded-xl p-4">
-              <p className="text-xs font-medium text-amber mb-1">Admin Notes</p>
-              <p className="text-sm text-text-primary">{order.admin_notes}</p>
+          {(order.admin_notes || isAdmin) && (
+            <div className="bg-amber-light rounded-xl p-4 relative group">
+              <div className="flex justify-between items-center mb-1">
+                <p className="text-xs font-medium text-amber">Admin Notes</p>
+                {isAdmin && (
+                  <button
+                    onClick={() => {
+                      const newNote = window.prompt("Admin Note:", order.admin_notes || "");
+                      if (newNote !== null) {
+                        updateNote.mutate({ orderId: order.id, adminNotes: newNote });
+                      }
+                    }}
+                    disabled={updateNote.isPending}
+                    className="text-[10px] text-amber hover:underline no-print disabled:opacity-50"
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
+              <p className="text-sm text-text-primary">
+                {order.admin_notes || <span className="text-amber/60 italic">No notes</span>}
+              </p>
             </div>
           )}
 
@@ -460,9 +483,14 @@ function OrderDetailDrawer({
                 <span>Qty</span>
               </div>
               {order.items?.map((item) => (
-                <div key={item.id} className="flex justify-between mb-1">
-                  <span className="pr-2 whitespace-pre-wrap">{item.product_name}</span>
-                  <span className="whitespace-nowrap">{item.quantity}</span>
+                <div key={item.id} className="mb-1">
+                  <div className="flex justify-between">
+                    <span className="pr-2 whitespace-pre-wrap">{item.product_name}</span>
+                    <span className="whitespace-nowrap">{item.quantity}</span>
+                  </div>
+                  {item.note && (
+                    <div className="text-[9px] italic mt-0.5">- {item.note}</div>
+                  )}
                 </div>
               ))}
               <div className="flex justify-between font-bold border-t border-black mt-2 pt-1">

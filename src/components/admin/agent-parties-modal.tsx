@@ -57,6 +57,7 @@ export function AgentPartiesModal({ agentId, agentName, onClose }: AgentPartiesM
                 <thead>
                   <tr className="bg-surface text-text-muted whitespace-nowrap">
                     <th className="text-left px-4 py-3 font-medium">Party Name</th>
+                    <th className="text-left px-4 py-3 font-medium">Code</th>
                     <th className="text-left px-4 py-3 font-medium">Contact</th>
                     <th className="text-left px-4 py-3 font-medium">City</th>
                     <th className="text-left px-4 py-3 font-medium">State</th>
@@ -73,6 +74,7 @@ export function AgentPartiesModal({ agentId, agentName, onClose }: AgentPartiesM
                       }`}
                     >
                       <td className="px-4 py-3 font-medium text-text-primary whitespace-nowrap">{party.account_name}</td>
+                      <td className="px-4 py-3 font-medium text-primary whitespace-nowrap">{party.access_code || "-"}</td>
                       <td className="px-4 py-3 text-text-muted whitespace-nowrap">
                         {party.phone1 || "-"}
                         {party.phone2 ? `, ${party.phone2}` : ""}

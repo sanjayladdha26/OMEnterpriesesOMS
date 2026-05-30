@@ -1,5 +1,6 @@
-const fs = require('fs');
-const { createClient } = require('@supabase/supabase-js');
+import fs from 'fs';
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
 
 async function run() {
   const env = fs.readFileSync('.env', 'utf8');

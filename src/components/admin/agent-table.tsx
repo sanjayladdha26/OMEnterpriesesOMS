@@ -73,12 +73,12 @@ export function AgentTable({ searchQuery }: AgentTableProps) {
               >
                 <td className="px-4 py-3 text-text-muted">{idx + 1}</td>
                 <td 
-                  className="px-4 py-3 font-medium text-primary cursor-pointer hover:underline"
+                  className="px-4 py-3 font-medium text-text-primary cursor-pointer hover:underline"
                   onClick={() => setSelectedAgentForParties({ id: agent.id, name: agent.name })}
                 >
                   {agent.name}
                 </td>
-                <td className="px-4 py-3 font-medium text-text-primary">{agent.code}</td>
+                <td className="px-4 py-3 font-medium text-primary">{agent.code}</td>
                 <td className="px-4 py-3 text-text-muted">{agent.phone || "-"}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-center gap-1">

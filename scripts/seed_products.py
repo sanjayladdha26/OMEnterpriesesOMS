@@ -44,17 +44,18 @@ def seed_products():
     for row in products_data:
         # Expected mapping:
         # Item description/name -> name
-        # item code -> item_code
+        # item code -> sku_name
         
         name = row.get("name", "").strip()
-        item_code = row.get("item_code", "").strip()
+        sku_name = row.get("item_code", "").strip()
         
         if not name:
             continue
 
         products_to_insert.append({
             "name": name,
-            "item_code": item_code
+            "sku_name": sku_name,
+            "price_per_unit": 0
         })
 
     # Batch insert in chunks of 500

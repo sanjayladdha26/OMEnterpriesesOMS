@@ -20,6 +20,7 @@ interface CartState {
     product_id: string;
     product_name: string;
     quantity: number;
+    note?: string;
   }) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
@@ -49,6 +50,7 @@ export const useCartStore = create<CartState>((set, get) => ({
           product_id: product.product_id,
           product_name: product.product_name,
           quantity: product.quantity,
+          note: product.note,
         },
       ],
     }));
@@ -113,6 +115,7 @@ export const useCartStore = create<CartState>((set, get) => ({
       product_id: item.product_id,
       product_name: item.product_name,
       quantity: item.quantity,
+      note: item.note,
       unit: "metre",
       unit_price: 0,
       subtotal: 0,
@@ -146,6 +149,7 @@ export const useCartStore = create<CartState>((set, get) => ({
           product_id: item.product_id,
           product_name: item.product_name,
           quantity: item.quantity,
+          note: item.note,
         })),
         status: "pending",
         created_at: data.created_at,
@@ -164,7 +168,7 @@ export const useCartStore = create<CartState>((set, get) => ({
 
       return savedOrder;
     } catch (error) {
-      console.error("Failed to create order:", error);
+      console.error("Failed to create order:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
       set({ saving: false });
       throw error;
     }

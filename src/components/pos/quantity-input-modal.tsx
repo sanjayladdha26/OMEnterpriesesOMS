@@ -12,6 +12,7 @@ interface QuantityInputModalProps {
 
 export function QuantityInputModal({ product, onClose }: QuantityInputModalProps) {
   const [mtrs, setMtrs] = useState("");
+  const [note, setNote] = useState("");
   const addItem = useCartStore((s) => s.addItem);
 
   useEffect(() => {
@@ -21,7 +22,7 @@ export function QuantityInputModal({ product, onClose }: QuantityInputModalProps
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose, mtrs]); // Added mtrs to dependency array so Enter key has the latest state
+  }, [onClose, mtrs, note]); // Added mtrs and note to dependency array
 
   const handleAdd = () => {
     const qty = parseFloat(mtrs);
@@ -31,6 +32,7 @@ export function QuantityInputModal({ product, onClose }: QuantityInputModalProps
       product_id: product.id,
       product_name: product.name,
       quantity: qty,
+      note: note.trim() || undefined,
     });
     onClose();
   };
@@ -78,6 +80,19 @@ export function QuantityInputModal({ product, onClose }: QuantityInputModalProps
           />
         </div>
 
+        <div className="mt-4">
+          <label className="text-sm font-medium text-text-primary block mb-2">
+            Note
+          </label>
+          <input
+            type="text"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Color name and number"
+            className="w-full h-12 text-sm border border-border rounded-xl px-4 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-surface transition-colors"
+          />
+        </div>
+
         {/* Actions */}
         <div className="mt-5 flex gap-3">
           <button
@@ -88,7 +103,7 @@ export function QuantityInputModal({ product, onClose }: QuantityInputModalProps
           </button>
           <button
             onClick={handleAdd}
-            disabled={!mtrs || parseFloat(mtrs) <= 0 || isNaN(parseFloat(mtrs))}
+            disabled={!mtrs || parseFloat(mtrs) <= 0 || isNaN(parseFloat(mtrs)) || !note.trim()}
             className="flex-1 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
           >
             Add to Order

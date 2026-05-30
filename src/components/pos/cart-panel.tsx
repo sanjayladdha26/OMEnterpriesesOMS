@@ -149,6 +149,11 @@ export function CartPanel({ orderNumber, onOrderSaved, onClose }: CartPanelProps
                       <h4 className="text-sm font-medium text-text-primary truncate">
                         {item.product_name}
                       </h4>
+                      {item.note && (
+                        <p className="text-xs text-text-muted mt-0.5 line-clamp-2">
+                          Note: {item.note}
+                        </p>
+                      )}
                     </div>
                     <button
                       onClick={() => removeItem(item.id)}

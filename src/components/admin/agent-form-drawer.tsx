@@ -41,9 +41,16 @@ export function AgentFormDrawer() {
     setIsSubmitting(true);
     const toastId = toast.loading(isEdit ? "Updating agent..." : "Saving agent...");
     try {
+      let finalName = name.trim();
+      let finalCode = code.trim();
+      if (!isEdit) {
+        const randomDigits = Math.floor(1000 + Math.random() * 9000).toString();
+        finalCode = `${finalCode}${randomDigits}`;
+      }
+
       const payload = {
-        name: name.trim(),
-        code: code.trim(),
+        name: finalName,
+        code: finalCode,
         phone: phone.trim() || null,
       };
 
