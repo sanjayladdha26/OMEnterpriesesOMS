@@ -152,6 +152,7 @@ export const useCartStore = create<CartState>((set, get) => ({
           quantity: item.quantity,
           note: item.note,
           image_url: item.image_url,
+          status: "pending" as const,
         })),
         status: "pending",
         created_at: data.created_at,

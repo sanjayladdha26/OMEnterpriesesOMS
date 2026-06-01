@@ -414,6 +414,32 @@ export function useUpdateOrderStatus() {
   });
 }
 
+export function useUpdateOrderItemStatus() {
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      itemId,
+      status,
+    }: {
+      itemId: string;
+      status: string;
+    }) => {
+      const { error } = await supabase
+        .from("order_items")
+        .update({ status })
+        .eq("id", itemId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["order"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-orders"] });
+    },
+  });
+}
+
 export function useUpdateOrderNote() {
   const supabase = useSupabase();
   const queryClient = useQueryClient();

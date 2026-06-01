@@ -44,6 +44,7 @@ export interface Staff {
   can_view_agents?: boolean;
   can_view_staff?: boolean;
   is_admin: boolean;
+  allowed_products?: string[] | null;
   created_at: string;
 }
 
@@ -86,6 +87,7 @@ export interface OrderItem {
   quantity: number;
   note?: string;
   image_url?: string;
+  status: string;
 }
 
 export interface Order {

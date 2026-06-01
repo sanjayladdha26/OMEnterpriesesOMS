@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Drawer } from "@/components/ui/drawer";
 import { useUIStore } from "@/stores/ui-store";
-import { useCreateStaff, useUpdateStaff } from "@/lib/hooks";
+import { useCreateStaff, useUpdateStaff, useProducts } from "@/lib/hooks";
 import toast from "react-hot-toast";
 import type { Staff } from "@/types/database";
 import { Save, UserCheck, KeyRound } from "lucide-react";
@@ -29,7 +29,10 @@ export function StaffFormDrawer() {
     can_view_agents: false,
     can_view_staff: false,
     is_admin: false,
+    allowed_products: [] as string[],
   });
+
+  const { data: products } = useProducts();
 
   useEffect(() => {
     if (isOpen && isEditing && drawerData?.staff) {
@@ -47,6 +50,7 @@ export function StaffFormDrawer() {
         can_view_agents: staff.can_view_agents || false,
         can_view_staff: staff.can_view_staff || false,
         is_admin: staff.is_admin || false,
+        allowed_products: staff.allowed_products || [],
       });
     } else if (isOpen && !isEditing) {
       setFormData({
@@ -62,6 +66,7 @@ export function StaffFormDrawer() {
         can_view_agents: false,
         can_view_staff: false,
         is_admin: false,
+        allowed_products: [],
       });
     }
   }, [isOpen, isEditing, drawerData]);
@@ -221,6 +226,31 @@ export function StaffFormDrawer() {
                 <p className="text-xs text-text-muted">Has all permissions and can manage other staff and agents.</p>
               </div>
             </label>
+
+            {!formData.is_admin && (
+              <div className="space-y-2 mt-4 mb-4">
+                <p className="text-sm font-semibold text-text-primary">Item-wise Access</p>
+                <p className="text-xs text-text-muted mb-2">Select which products this staff member can view/work on. Leave empty for no access.</p>
+                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2">
+                  {products?.map(product => (
+                    <label key={product.id} className="flex items-center gap-2 p-2 rounded-lg border border-border hover:bg-surface-hover cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.allowed_products.includes(product.id)}
+                        onChange={(e) => {
+                          const newAllowed = e.target.checked 
+                            ? [...formData.allowed_products, product.id]
+                            : formData.allowed_products.filter(id => id !== product.id);
+                          setFormData({ ...formData, allowed_products: newAllowed });
+                        }}
+                        className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                      />
+                      <span className="text-sm font-medium text-text-primary truncate" title={product.name}>{product.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

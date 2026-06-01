@@ -18,6 +18,7 @@ import {
 import {
   useOrders,
   useUpdateOrderStatus,
+  useUpdateOrderItemStatus,
   useUpdateOrderNote,
   useDeleteOrder,
   useOrderDetails,
@@ -27,6 +28,7 @@ import type { OrderStatus, Order } from "@/types/database";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/stores/auth-store";
 import { Drawer } from "@/components/ui/drawer";
+import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
 
 /* ── Status badge config ─────────────────────────────────── */
 
@@ -180,7 +182,9 @@ function OrderDetailDrawer({
   onClose: () => void;
 }) {
   const { data: order, isLoading } = useOrderDetails(orderId);
+  const [viewImage, setViewImage] = useState<{ url: string; alt: string } | null>(null);
   const updateStatus = useUpdateOrderStatus();
+  const updateItemStatus = useUpdateOrderItemStatus();
   const updateNote = useUpdateOrderNote();
   const role = useAuthStore((state) => state.role);
   const staff = useAuthStore((state) => state.staff);
@@ -209,6 +213,38 @@ function OrderDetailDrawer({
     const notes = window.prompt("Reason for rejection (optional):");
     if (notes === null) return; // cancelled
     handleStatusChange("rejected", notes || undefined);
+  };
+
+  const visibleItems = useMemo(() => {
+    if (!order?.items) return [];
+    if (role === "staff" && !isAdmin) {
+      if (order.items.length > 1) {
+        return order.items; // multi-item orders are visible to all staff
+      }
+      
+      const allowed = staff?.allowed_products || [];
+      if (allowed.length === 0) return [];
+      return order.items.filter(item => allowed.includes(item.product_id));
+    }
+    return order.items;
+  }, [order?.items, role, isAdmin, staff]);
+
+  const handleItemComplete = async (itemId: string) => {
+    try {
+      await updateItemStatus.mutateAsync({ itemId, status: "completed" });
+      toast.success("Item marked as completed");
+      
+      // Check if all items are now completed
+      if (order && order.items) {
+        const otherItems = order.items.filter(i => i.id !== itemId);
+        const allOthersCompleted = otherItems.every(i => i.status === "completed");
+        if (allOthersCompleted) {
+          handleStatusChange("completed");
+        }
+      }
+    } catch {
+      toast.error("Failed to update item status");
+    }
   };
 
   return (
@@ -307,10 +343,13 @@ function OrderDetailDrawer({
                     <th className="text-right px-3 py-2 text-text-muted font-medium">
                       Qty
                     </th>
+                    <th className="text-right px-3 py-2 text-text-muted font-medium w-32">
+                      Status
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {order.items?.map((item) => (
+                  {visibleItems.map((item) => (
                     <tr
                       key={item.id}
                       className="border-b border-border last:border-0"
@@ -325,14 +364,33 @@ function OrderDetailDrawer({
                         )}
                         {item.image_url && (
                           <div className="mt-2 no-print">
-                            <a href={item.image_url} target="_blank" rel="noreferrer" className="inline-block">
-                              <img src={item.image_url} alt="Attached image" className="w-16 h-16 object-cover border border-border rounded-md hover:opacity-80 transition-opacity" />
-                            </a>
+                            <button
+                              onClick={() => setViewImage({ url: item.image_url!, alt: "Attached image" })}
+                              className="inline-block hover:opacity-80 transition-opacity focus:outline-none"
+                            >
+                              <img src={item.image_url} alt="Attached image" className="w-16 h-16 object-cover border border-border rounded-md" />
+                            </button>
                           </div>
                         )}
                       </td>
                       <td className="px-3 py-2 text-right text-text-primary">
                         {item.quantity}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <div className="flex flex-col items-end gap-1">
+                          <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", item.status === "completed" ? "bg-green-light text-green" : "bg-amber-light text-amber")}>
+                            {item.status === "completed" ? "Completed" : "Pending"}
+                          </span>
+                          {item.status !== "completed" && canComplete && (
+                            <button
+                              onClick={() => handleItemComplete(item.id)}
+                              disabled={updateItemStatus.isPending}
+                              className="text-xs text-primary hover:text-primary-dark mt-1"
+                            >
+                              Mark Done
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -464,7 +522,7 @@ function OrderDetailDrawer({
                 <span>Item</span>
                 <span>Qty</span>
               </div>
-              {order.items?.map((item) => (
+              {visibleItems.map((item) => (
                 <div key={item.id} className="mb-1">
                   <div className="flex justify-between">
                     <span className="pr-2 whitespace-pre-wrap">{item.product_name}</span>
@@ -480,17 +538,23 @@ function OrderDetailDrawer({
               ))}
               <div className="flex justify-between font-bold border-t border-black mt-2 pt-1">
                 <span>Total Items</span>
-                <span>{order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}</span>
+                <span>{visibleItems.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}</span>
               </div>
             </div>
 
 
 
-            <div className="mt-4 pt-2 border-t border-black text-center font-bold">
-              *** END OF ORDER ***
-            </div>
           </div>
         </div>
+      )}
+
+      {/* Image Viewer Modal */}
+      {viewImage && (
+        <ImageViewerModal
+          imageUrl={viewImage.url}
+          altText={viewImage.alt}
+          onClose={() => setViewImage(null)}
+        />
       )}
     </Drawer>
   );
@@ -529,6 +593,28 @@ export default function AdminOrdersPage() {
 
     let result = [...orders];
 
+    // Staff product filtering
+    if (role === "staff" && !isAdmin) {
+      const allowed = staff?.allowed_products || [];
+      
+      result = result.filter(order => {
+        if (!order.items) return false;
+        
+        // Multi-item orders are visible to all staff
+        if (order.items.length > 1) {
+          return true;
+        }
+        
+        // Single-item orders are restricted by allowed_products
+        if (order.items.length === 1) {
+          if (allowed.length === 0) return false;
+          return allowed.includes(order.items[0].product_id);
+        }
+        
+        return false;
+      });
+    }
+
     // Status filter
     if (statusFilter !== "all") {
       result = result.filter((o) => o.status === statusFilter);
@@ -554,7 +640,7 @@ export default function AdminOrdersPage() {
     }
 
     return result;
-  }, [orders, statusFilter, searchQuery, dateRange, customFrom, customTo]);
+  }, [orders, statusFilter, searchQuery, dateRange, customFrom, customTo, role, isAdmin, staff]);
 
   // Action handlers
   const handleStatusChange = async (

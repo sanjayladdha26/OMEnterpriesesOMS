@@ -1,0 +1,39 @@
+const { Client } = require('pg');
+const fs = require('fs');
+require('dotenv').config();
+
+async function run() {
+  let dbUrl = process.env.DATABASE_URL.replace(/^"|"$/g, ''); 
+  
+  const match = dbUrl.match(/postgresql:\/\/([^:]+):([^@]+)@(.*)/);
+  if (match) {
+    const user = match[1];
+    const password = match[2];
+    const rest = match[3];
+    dbUrl = `postgresql://${user}:${encodeURIComponent(password)}@${rest}`;
+  }
+
+  const dns = require('dns');
+  dns.setDefaultResultOrder('ipv6first');
+
+  const client = new Client({
+    connectionString: dbUrl,
+  });
+  
+  try {
+    await client.connect();
+    console.log("Connected to the database");
+    
+    const sql = fs.readFileSync('item_wise_staff.sql', 'utf8');    
+    console.log("Executing migration...");
+    await client.query(sql);
+    
+    console.log("Migration applied successfully!");
+  } catch (err) {
+    console.error("Error running migration:", err);
+  } finally {
+    await client.end();
+  }
+}
+
+run();

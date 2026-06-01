@@ -8,6 +8,8 @@ import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { Order, Party, Agent } from "@/types/database";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
+import { useState } from "react";
 
 interface CartPanelProps {
   orderNumber: string;
@@ -18,6 +20,7 @@ interface CartPanelProps {
 export function CartPanel({ orderNumber, onOrderSaved, onClose }: CartPanelProps) {
   const role = useAuthStore((s) => s.role);
   const authAgent = useAuthStore((s) => s.agent);
+  const [viewImage, setViewImage] = useState<{ url: string; alt: string } | null>(null);
   
   const {
     items,
@@ -155,9 +158,12 @@ export function CartPanel({ orderNumber, onOrderSaved, onClose }: CartPanelProps
                         </p>
                       )}
                       {item.image_url && (
-                        <div className="mt-2 w-16 h-16 rounded-lg overflow-hidden border border-border">
+                        <button 
+                          onClick={() => setViewImage({ url: item.image_url!, alt: item.product_name })}
+                          className="mt-2 w-16 h-16 rounded-lg overflow-hidden border border-border hover:opacity-80 transition-opacity focus:outline-none"
+                        >
                           <img src={item.image_url} alt="Reference" className="w-full h-full object-cover" />
-                        </div>
+                        </button>
                       )}
                     </div>
                     <button
@@ -203,6 +209,15 @@ export function CartPanel({ orderNumber, onOrderSaved, onClose }: CartPanelProps
             />
           </div>
         </div>
+      )}
+
+      {/* Image Viewer Modal */}
+      {viewImage && (
+        <ImageViewerModal
+          imageUrl={viewImage.url}
+          altText={viewImage.alt}
+          onClose={() => setViewImage(null)}
+        />
       )}
     </div>
   );
