@@ -26,8 +26,7 @@ async function run() {
     await client.connect();
     console.log("Connected to the database");
     
-    const sql = fs.readFileSync('supabase/migrations/20260530000003_add_note_to_order_items.sql', 'utf8');
-    
+    const sql = fs.readFileSync('supabase/migrations/20260601000000_add_image_url_to_order_items.sql', 'utf8');    
     console.log("Executing migration...");
     await client.query(sql);
     

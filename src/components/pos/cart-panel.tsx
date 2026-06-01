@@ -151,8 +151,13 @@ export function CartPanel({ orderNumber, onOrderSaved, onClose }: CartPanelProps
                       </h4>
                       {item.note && (
                         <p className="text-xs text-text-muted mt-0.5 line-clamp-2">
-                          Note: {item.note}
+                          Color: {item.note}
                         </p>
+                      )}
+                      {item.image_url && (
+                        <div className="mt-2 w-16 h-16 rounded-lg overflow-hidden border border-border">
+                          <img src={item.image_url} alt="Reference" className="w-full h-full object-cover" />
+                        </div>
                       )}
                     </div>
                     <button

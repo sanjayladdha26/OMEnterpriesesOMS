@@ -21,32 +21,27 @@ export default function InventoryPage() {
   return (
     <div className="p-4 lg:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-bold text-text-primary">
-            Inventory Management
-          </h1>
-          <p className="text-xs text-text-muted mt-0.5">
-            Manage your product inventory
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          <img src="/image.jpg" alt="Logo" className="w-10 h-10 object-contain lg:hidden" />
+          <div>
+            <h1 className="text-xl font-bold text-text-primary">
+              Inventory Management
+            </h1>
+            <p className="text-xs text-text-muted mt-0.5">
+              Manage your product inventory
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           {isAdmin && (
-            <>
-              <button
-                onClick={() => openDrawer("manage-categories")}
-                className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border text-text-primary rounded-xl text-sm font-semibold hover:bg-surface-hover transition-colors shadow-sm"
-              >
-                Manage Categories
-              </button>
-              <button
-                onClick={() => openDrawer("add-product")}
-                className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary-dark transition-colors shadow-sm"
-              >
-                <Plus className="w-4 h-4" />
-                Add New Product
-              </button>
-            </>
+            <button
+              onClick={() => openDrawer("add-product")}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 w-full sm:w-auto bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary-dark transition-colors shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Add New Product
+            </button>
           )}
         </div>
       </div>

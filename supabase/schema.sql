@@ -119,9 +119,10 @@ CREATE TRIGGER orders_updated_at
 -- create_order: Creates order + items atomically
 CREATE OR REPLACE FUNCTION create_order(
   p_order_number TEXT,
-  p_customer_id UUID,
-  p_customer_name TEXT,
-  p_customer_phone TEXT,
+  p_party_id UUID,
+  p_party_name TEXT,
+  p_agent_id UUID,
+  p_agent_name TEXT,
   p_subtotal NUMERIC,
   p_total NUMERIC,
   p_items JSONB
@@ -134,25 +135,24 @@ DECLARE
   v_item JSONB;
 BEGIN
   INSERT INTO orders (
-    order_number, customer_id, customer_name, customer_phone,
-    subtotal, total, status
+    order_number, party_id, party_name, agent_id, agent_name, status, subtotal, total
   ) VALUES (
-    p_order_number, p_customer_id, p_customer_name, p_customer_phone,
-    p_subtotal, p_total, 'pending'
+    p_order_number, p_party_id, p_party_name, p_agent_id, p_agent_name, 'pending', p_subtotal, p_total
   ) RETURNING id, created_at INTO v_order_id, v_created_at;
 
   FOR v_item IN SELECT * FROM jsonb_array_elements(p_items) LOOP
     INSERT INTO order_items (
-      order_id, product_id, product_name, quantity,
-      unit, unit_price, subtotal
+      order_id, product_id, product_name, quantity, note, image_url, unit, unit_price, subtotal
     ) VALUES (
       v_order_id,
       (v_item->>'product_id')::UUID,
       v_item->>'product_name',
       (v_item->>'quantity')::NUMERIC,
-      v_item->>'unit',
-      (v_item->>'unit_price')::NUMERIC,
-      (v_item->>'subtotal')::NUMERIC
+      v_item->>'note',
+      v_item->>'image_url',
+      COALESCE(v_item->>'unit', 'metre'),
+      COALESCE((v_item->>'unit_price')::NUMERIC, 0),
+      COALESCE((v_item->>'subtotal')::NUMERIC, 0)
     );
   END LOOP;
 

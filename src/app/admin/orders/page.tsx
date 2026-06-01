@@ -321,7 +321,14 @@ function OrderDetailDrawer({
                           <div className="text-xs text-text-muted mt-0.5">{(item as any).products.sku_name}</div>
                         )}
                         {item.note && (
-                          <div className="text-xs text-text-muted mt-0.5 italic">Note: {item.note}</div>
+                          <div className="text-xs text-text-muted mt-0.5 italic">Color: {item.note}</div>
+                        )}
+                        {item.image_url && (
+                          <div className="mt-2 no-print">
+                            <a href={item.image_url} target="_blank" rel="noreferrer" className="inline-block">
+                              <img src={item.image_url} alt="Attached image" className="w-16 h-16 object-cover border border-border rounded-md hover:opacity-80 transition-opacity" />
+                            </a>
+                          </div>
                         )}
                       </td>
                       <td className="px-3 py-2 text-right text-text-primary">
@@ -334,31 +341,7 @@ function OrderDetailDrawer({
             </div>
           </div>
 
-          {/* Admin notes */}
-          {(order.admin_notes || isAdmin) && (
-            <div className="bg-amber-light rounded-xl p-4 relative group">
-              <div className="flex justify-between items-center mb-1">
-                <p className="text-xs font-medium text-amber">Admin Notes</p>
-                {isAdmin && (
-                  <button
-                    onClick={() => {
-                      const newNote = window.prompt("Admin Note:", order.admin_notes || "");
-                      if (newNote !== null) {
-                        updateNote.mutate({ orderId: order.id, adminNotes: newNote });
-                      }
-                    }}
-                    disabled={updateNote.isPending}
-                    className="text-[10px] text-amber hover:underline no-print disabled:opacity-50"
-                  >
-                    Edit
-                  </button>
-                )}
-              </div>
-              <p className="text-sm text-text-primary">
-                {order.admin_notes || <span className="text-amber/60 italic">No notes</span>}
-              </p>
-            </div>
-          )}
+
 
           {/* Action buttons */}
           <div className="flex flex-wrap gap-2 pt-2 border-t border-border no-print">
@@ -488,7 +471,10 @@ function OrderDetailDrawer({
                     <span className="whitespace-nowrap">{item.quantity}</span>
                   </div>
                   {item.note && (
-                    <div className="text-[9px] italic mt-0.5">- {item.note}</div>
+                    <div className="text-[9px] italic mt-0.5">- Color: {item.note}</div>
+                  )}
+                  {item.image_url && (
+                    <div className="text-[9px] italic mt-0.5">- [Image Attached]</div>
                   )}
                 </div>
               ))}
@@ -498,12 +484,7 @@ function OrderDetailDrawer({
               </div>
             </div>
 
-            {order.admin_notes && (
-              <div className="mt-3 pt-2 border-t border-black border-dashed">
-                <div className="font-bold">Notes:</div>
-                <div>{order.admin_notes}</div>
-              </div>
-            )}
+
 
             <div className="mt-4 pt-2 border-t border-black text-center font-bold">
               *** END OF ORDER ***
@@ -609,11 +590,14 @@ export default function AdminOrdersPage() {
     <>
       <div className={cn("p-4 lg:p-6", drawerOrderId !== null && "no-print")}>
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-text-primary">Order Management</h1>
-        <p className="text-xs text-text-muted mt-0.5">
-          Manage and track customer orders
-        </p>
+      <div className="flex items-center gap-3 mb-6">
+        <img src="/image.jpg" alt="Logo" className="w-10 h-10 object-contain lg:hidden" />
+        <div>
+          <h1 className="text-xl font-bold text-text-primary">Order Management</h1>
+          <p className="text-xs text-text-muted mt-0.5">
+            Manage and track customer orders
+          </p>
+        </div>
       </div>
 
       {/* Status tabs */}

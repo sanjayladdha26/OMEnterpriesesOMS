@@ -218,7 +218,7 @@ export default function StoreOrdersPage() {
                           </span>
                         </div>
                         {item.note && (
-                          <span className="text-xs text-text-muted mt-1 italic">Note: {item.note}</span>
+                          <span className="text-xs text-text-muted mt-1 italic">Color: {item.note}</span>
                         )}
                       </div>
                     ))}
