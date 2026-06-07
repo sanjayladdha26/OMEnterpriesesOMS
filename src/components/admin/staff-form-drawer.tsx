@@ -229,7 +229,26 @@ export function StaffFormDrawer() {
 
             {!formData.is_admin && (
               <div className="space-y-2 mt-4 mb-4">
-                <p className="text-sm font-semibold text-text-primary">Item-wise Access</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-text-primary">Item-wise Access</p>
+                  {products && products.length > 0 && (
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.allowed_products.length === products.length}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData({ ...formData, allowed_products: products.map(p => p.id) });
+                          } else {
+                            setFormData({ ...formData, allowed_products: [] });
+                          }
+                        }}
+                        className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                      />
+                      <span className="text-xs font-medium text-text-primary">Select All</span>
+                    </label>
+                  )}
+                </div>
                 <p className="text-xs text-text-muted mb-2">Select which products this staff member can view/work on. Leave empty for no access.</p>
                 <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2">
                   {products?.map(product => (

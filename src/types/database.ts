@@ -105,6 +105,19 @@ export interface Order {
   updated_at: string;
 }
 
+export interface OrderMessage {
+  id: string;
+  order_id: string;
+  sender_id: string;
+  sender_role: string;
+  sender_name: string;
+  message: string;
+  image_url?: string;
+  is_edited: boolean;
+  is_deleted: boolean;
+  created_at: string;
+}
+
 // ── Cart (client-side only) ─────────────────────────────────
 
 export interface CartItem {

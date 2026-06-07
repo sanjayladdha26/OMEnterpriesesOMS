@@ -152,6 +152,24 @@ CREATE TABLE public.orders (
 
 
 --
+-- Name: order_messages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.order_messages (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    order_id uuid NOT NULL,
+    sender_id text NOT NULL,
+    sender_role text NOT NULL,
+    sender_name text NOT NULL,
+    message text NOT NULL,
+    image_url text,
+    is_edited boolean DEFAULT false,
+    is_deleted boolean DEFAULT false,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
 -- Name: parties; Type: TABLE; Schema: public; Owner: -
 --
 

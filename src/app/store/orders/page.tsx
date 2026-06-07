@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useAuthStore } from "@/stores/auth-store";
 import { useAgentOrders, useOrders, usePartyOrders } from "@/lib/hooks";
 import Link from "next/link";
 import { FileText, Loader2, Package, Check, Truck, XCircle } from "lucide-react";
 import type { Order } from "@/types/database";
+import { OrderDetailDrawer, StatusBadge } from "@/components/order-detail-drawer";
 
 type OrderStatusType = "pending" | "accepted" | "dispatched" | "completed" | "rejected";
 
@@ -92,6 +94,7 @@ function OrderStatusStepper({ status }: { status: OrderStatusType }) {
 
 export default function StoreOrdersPage() {
   const { role, agent, party } = useAuthStore();
+  const [drawerOrderId, setDrawerOrderId] = useState<string | null>(null);
   
   // If admin, they see all orders. If agent, they see their orders. If party, they see their orders.
   const { data: agentOrders, isLoading: isAgentLoading } = useAgentOrders(agent?.id || "");
@@ -184,11 +187,9 @@ export default function StoreOrdersPage() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <span
-                      className={`inline-block px-2.5 py-1 text-xs font-medium rounded-full mt-1 ${config.badgeClass}`}
-                    >
-                      {config.label}
-                    </span>
+                    <div className="mt-1">
+                      <StatusBadge status={status} />
+                    </div>
                   </div>
                 </div>
 
@@ -224,11 +225,26 @@ export default function StoreOrdersPage() {
                     ))}
                   </div>
                 </div>
+
+                <div className="mt-4 pt-4 border-t border-border flex justify-end">
+                  <button
+                    onClick={() => setDrawerOrderId(order.id)}
+                    className="text-sm font-medium text-primary hover:underline"
+                  >
+                    View Full Details
+                  </button>
+                </div>
               </div>
             );
           })}
         </div>
       )}
+
+      <OrderDetailDrawer
+        orderId={drawerOrderId}
+        open={drawerOrderId !== null}
+        onClose={() => setDrawerOrderId(null)}
+      />
     </div>
   );
 }

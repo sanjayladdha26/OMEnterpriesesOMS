@@ -414,31 +414,6 @@ export function useUpdateOrderStatus() {
   });
 }
 
-export function useUpdateOrderItemStatus() {
-  const supabase = useSupabase();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      itemId,
-      status,
-    }: {
-      itemId: string;
-      status: string;
-    }) => {
-      const { error } = await supabase
-        .from("order_items")
-        .update({ status })
-        .eq("id", itemId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-      queryClient.invalidateQueries({ queryKey: ["order"] });
-      queryClient.invalidateQueries({ queryKey: ["agent-orders"] });
-    },
-  });
-}
 
 export function useUpdateOrderNote() {
   const supabase = useSupabase();
@@ -478,6 +453,84 @@ export function useDeleteOrder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       queryClient.invalidateQueries({ queryKey: ["agent-orders"] });
+    },
+  });
+}
+
+export function useOrderMessages(orderId: string | null) {
+  const supabase = useSupabase();
+  return useQuery({
+    queryKey: ["order-messages", orderId],
+    queryFn: async () => {
+      if (!orderId) return [];
+      const { data, error } = await supabase
+        .from("order_messages")
+        .select("*")
+        .eq("order_id", orderId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data as import("@/types/database").OrderMessage[];
+    },
+    enabled: !!orderId,
+    refetchInterval: 5000, // Polling every 5 seconds for real-time feel
+  });
+}
+
+export function useAddOrderMessage() {
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newMessage: Omit<import("@/types/database").OrderMessage, "id" | "created_at">) => {
+      const { data, error } = await supabase
+        .from("order_messages")
+        .insert([newMessage])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["order-messages", variables.order_id] });
+    },
+  });
+}
+
+export function useDeleteOrderMessage() {
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ messageId }: { messageId: string }) => {
+      const { error } = await supabase
+        .from("order_messages")
+        .update({ is_deleted: true })
+        .eq("id", messageId);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate all order messages or a specific one if we knew the orderId.
+      // Easiest is to invalidate the whole order-messages cache or pass orderId.
+      queryClient.invalidateQueries({ queryKey: ["order-messages"] });
+    },
+  });
+}
+
+export function useUpdateOrderMessage() {
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ messageId, newText }: { messageId: string; newText: string }) => {
+      const { error } = await supabase
+        .from("order_messages")
+        .update({ message: newText, is_edited: true })
+        .eq("id", messageId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["order-messages"] });
     },
   });
 }
