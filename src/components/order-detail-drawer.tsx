@@ -299,81 +299,134 @@ export function OrderDetailDrawer({
         </div>
 
         {/* Receipt Print Only */}
-        <div className="receipt-print-only font-mono text-[10px] leading-tight text-black">
-            <div className="text-center font-bold text-sm mb-2 pb-2 border-b border-black border-dashed">
-              OM ENTERPRISES
+        <div className="receipt-print-only w-full text-black font-sans text-[10px] leading-tight">
+          {/* Corporate Header */}
+          <div className="flex justify-between items-end border-b-2 border-primary pb-2 mb-3">
+            <div>
+              <h1 className="text-lg font-extrabold tracking-tight text-primary">OM ENTERPRISES</h1>
+              <p className="text-[9px] text-text-muted mt-0.5 font-semibold">Order Management System | Premium Textiles & Fabrics</p>
             </div>
-            
-            <div className="mb-3 space-y-1">
-              <div className="flex justify-between">
-                <span>Order No:</span>
-                <span className="font-bold">{order.order_number}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Date:</span>
-                <span>{formatDate(order.created_at)}</span>
-              </div>
+            <div className="text-right">
+              <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Order Confirmation</h2>
+              <p className="text-[10px] font-semibold text-primary">Order #: {order.order_number} | Date: {formatDate(order.created_at)}</p>
+            </div>
+          </div>
+
+          {/* Unified Metadata Box (3 Columns) */}
+          <div className="border border-gray-300 rounded-xl p-3 bg-gray-50/50 grid grid-cols-3 gap-4 mb-4">
+            {/* Col 1: Customer */}
+            <div className="space-y-1">
+              <h3 className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Customer</h3>
+              <p className="font-bold text-gray-800 leading-snug">{order.party?.account_name || order.party_name}</p>
+              {order.party?.phone1 && (
+                <p className="text-gray-600"><span className="font-semibold">Ph:</span> {order.party.phone1}</p>
+              )}
+              {order.party?.gstin && (
+                <p className="text-gray-600"><span className="font-semibold">GSTIN:</span> {order.party.gstin}</p>
+              )}
             </div>
 
-            <div className="mb-3 space-y-1 border-t border-b border-black border-dashed py-2">
-              <div className="font-bold">Customer Details:</div>
-              <div className="font-semibold">{order.party?.account_name || order.party_name}</div>
-              
-              {order.party && (order.party.address || order.party.city || order.party.state || order.party.pin_code) && (
-                <div>
-                  {[order.party.address, order.party.city, order.party.state, order.party.pin_code]
+            {/* Col 2: Address */}
+            <div className="space-y-1 col-span-1 border-l border-gray-200 pl-3">
+              <h3 className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Billing Address</h3>
+              <p className="text-gray-700 leading-normal">
+                {order.party ? (
+                  [order.party.address, order.party.city, order.party.state, order.party.pin_code]
                     .filter(Boolean)
-                    .join(", ")}
-                </div>
-              )}
+                    .join(", ")
+                ) : "—"}
+              </p>
+            </div>
 
-              {order.party?.phone1 && <div>Ph: {order.party.phone1}</div>}
-
-              {order.party && (order.party.delivery_city || order.party.transport) && (
-                <div className="mt-1 pt-1 border-t border-black border-dashed">
-                  <div className="font-bold">Shipping:</div>
-                  {order.party.delivery_city && <div>City: {order.party.delivery_city}</div>}
-                  {order.party.transport && <div>Transport: {order.party.transport}</div>}
-                </div>
-              )}
-
+            {/* Col 3: Agent Info */}
+            <div className="space-y-1 border-l border-gray-200 pl-3 flex flex-col justify-center">
               {order.agent_name && (
-                <div className="mt-1 pt-1 border-t border-black border-dashed">
-                  Agent: {order.agent_name}
-                </div>
+                <p className="text-gray-800 font-semibold">Agent: {order.agent_name}</p>
               )}
             </div>
+          </div>
 
-            <div className="mb-2">
-              <div className="flex justify-between font-bold border-b border-black mb-1 pb-1">
-                <span>Item</span>
-                <span>Qty</span>
-              </div>
-              {visibleItems.map((item) => (
-                <div key={item.id} className="mb-1">
-                  <div className="flex justify-between">
-                    <span className="pr-2 whitespace-pre-wrap">{item.product_name}</span>
-                    <span className="whitespace-nowrap">{item.quantity}</span>
-                  </div>
-                  {item.note && (
-                     <div className="text-[9px] italic mt-0.5">- Color: {item.note}</div>
-                  )}
-                  {item.image_url && (
-                    <div className="text-[9px] italic mt-0.5">- [Image Attached]</div>
-                  )}
-                </div>
-              ))}
-              <div className="flex justify-between font-bold border-t border-black mt-2 pt-1">
-                <span>Total Items</span>
-                <span>{visibleItems.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}</span>
+          {/* Items Table with clean corporate styling and proper borders */}
+          <div className="mb-4">
+            <table className="w-full border-collapse border border-gray-300 text-[10px]">
+              <thead>
+                <tr className="bg-gray-100 border-b border-gray-300">
+                  <th className="border-r border-gray-300 px-2.5 py-1.5 text-left font-bold text-gray-700 w-10">S.No.</th>
+                  <th className="border-r border-gray-300 px-2.5 py-1.5 text-left font-bold text-gray-700">Product / Fabric Name</th>
+                  <th className="border-r border-gray-300 px-2.5 py-1.5 text-left font-bold text-gray-700">Specifications / Notes</th>
+                  <th className="px-2.5 py-1.5 text-right font-bold text-gray-700 w-24">Quantity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibleItems.map((item, index) => (
+                  <tr key={item.id} className="border-b border-gray-300 last:border-b-2 last:border-b-gray-800">
+                    <td className="border-r border-gray-300 px-2.5 py-1.5 text-center text-gray-800">{index + 1}</td>
+                    <td className="border-r border-gray-300 px-2.5 py-1.5 font-medium text-gray-800">
+                      {item.product_name}
+                      {(item as any).products?.sku_name && (
+                        <span className="text-[8px] text-text-muted block font-normal">{(item as any).products.sku_name}</span>
+                      )}
+                    </td>
+                    <td className="border-r border-gray-300 px-2.5 py-1.5 text-gray-600 italic">
+                      {item.note ? `Color: ${item.note}` : "—"}
+                    </td>
+                    <td className="px-2.5 py-1.5 text-right font-semibold text-gray-800">
+                      {item.quantity} mtrs
+                    </td>
+                  </tr>
+                ))}
+                {/* Summary Rows */}
+                <tr className="bg-gray-50/50">
+                  <td colSpan={3} className="border-r border-gray-300 px-2.5 py-1 text-right font-bold text-gray-600 uppercase text-[8px] tracking-wider">
+                    Total Unique Items
+                  </td>
+                  <td className="px-2.5 py-1 text-right font-bold text-gray-800">
+                    {visibleItems.length} {visibleItems.length === 1 ? "Product" : "Products"}
+                  </td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td colSpan={3} className="border-r border-gray-300 px-2.5 py-1 text-right font-bold text-primary uppercase text-[8px] tracking-wider">
+                    Total Fabric Quantity
+                  </td>
+                  <td className="px-2.5 py-1 text-right font-extrabold text-primary">
+                    {visibleItems.reduce((sum, item) => sum + (item.quantity || 0), 0).toFixed(2).replace(/\.?0+$/, "")} mtrs
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Sign-off section / Signatures */}
+          <div className="grid grid-cols-3 gap-6 mt-6 pt-4">
+            <div className="text-center">
+              <div className="border-t border-gray-400 pt-1 text-[9px] text-gray-500 font-medium">
+                Prepared By
               </div>
             </div>
+            <div className="text-center">
+              <div className="border-t border-gray-400 pt-1 text-[9px] text-gray-500 font-medium">
+                Authorized Signatory
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="border-t border-gray-400 pt-1 text-[9px] text-gray-500 font-medium">
+                Customer's Acknowledgment
+              </div>
+            </div>
+          </div>
 
-
-
+          {/* Footer branding */}
+          <div className="mt-6 pt-2 border-t border-gray-200 flex justify-between items-center text-[8px] text-gray-400">
+            <div>
+              <span className="italic">Computer generated order confirmation</span>
+            </div>
+            <div className="font-medium">
+              powered by <span className="font-bold text-gray-500">MudraOMS</span>
+            </div>
           </div>
         </div>
-      )}
+      </div>
+    )}
 
       {/* Image Viewer Modal */}
       {viewImage && (

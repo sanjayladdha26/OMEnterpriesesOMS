@@ -11,10 +11,20 @@ import {
   Users,
   Shield,
   ShoppingCart,
+  ShoppingBag,
 } from "lucide-react";
 import { useUIStore } from "@/stores/ui-store";
 import { useAuthStore } from "@/stores/auth-store";
+import { useCartStore } from "@/stores/cart-store";
 import { cn } from "@/lib/utils";
+import { PushSubscriber } from "@/components/notifications/push-subscriber";
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  mobileOnly?: boolean;
+}
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -22,17 +32,18 @@ export function Sidebar() {
   const role = useAuthStore((state) => state.role);
   const staff = useAuthStore((state) => state.staff);
   const logout = useAuthStore((state) => state.logout);
+  const cartItems = useCartStore((state) => state.items);
 
   if (!role || role === "agent") return null;
 
-  const navItems = [];
+  const navItems: NavItem[] = [];
   if (role === "admin") {
     navItems.push(
       { href: "/admin/orders", label: "Orders", icon: FileText },
       { href: "/admin/inventory", label: "Inventory", icon: Package },
       { href: "/admin/agents", label: "Agents", icon: Users },
       { href: "/admin/staff", label: "Staff", icon: Shield },
-      { href: "/admin/new-order", label: "New Order", icon: ShoppingCart }
+      { href: "/admin/new-order", label: "New Order", icon: ShoppingBag }
     );
   } else if (role === "staff") {
     if (staff?.can_accept_order || staff?.can_dispatch_order || staff?.can_complete_order || staff?.can_reject_order || staff?.can_view_orders) {
@@ -48,8 +59,19 @@ export function Sidebar() {
       navItems.push({ href: "/admin/staff", label: "Staff", icon: Shield });
     }
     if (staff?.can_create_order) {
-      navItems.push({ href: "/admin/new-order", label: "New Order", icon: ShoppingCart });
+      navItems.push({ href: "/admin/new-order", label: "New Order", icon: ShoppingBag });
     }
+  }
+
+  // Add mobile-only Cart link to mobile bottom nav for users who can create orders
+  const canCreateOrder = role === "admin" || (role === "staff" && staff?.can_create_order);
+  if (canCreateOrder) {
+    navItems.push({
+      href: "/admin/new-order/cart",
+      label: "Cart",
+      icon: ShoppingCart,
+      mobileOnly: true,
+    });
   }
 
   return (
@@ -90,9 +112,11 @@ export function Sidebar() {
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-1">
-          {navItems.map((item) => {
+          {navItems.filter((item) => !item.mobileOnly).map((item) => {
             const isActive =
-              pathname === item.href || pathname.startsWith(item.href + "/");
+              item.href === "/admin/new-order"
+                ? pathname === "/admin/new-order"
+                : pathname === item.href || pathname.startsWith(item.href + "/");
             const Icon = item.icon;
 
             return (
@@ -115,10 +139,11 @@ export function Sidebar() {
         </nav>
 
         {/* Logout */}
-        <div className="px-3 py-4 border-t border-border">
-          <p className="px-3 mb-2 text-[10px] text-text-muted uppercase tracking-wider">
+        <div className="px-3 py-4 border-t border-border flex flex-col gap-2">
+          <p className="px-3 text-[10px] text-text-muted uppercase tracking-wider">
             Logged in as <span className="font-semibold capitalize">{role}</span>
           </p>
+          <PushSubscriber />
           <button
             onClick={() => { logout(); setSidebarOpen(false); window.location.href = "/"; }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red hover:bg-red-light transition-colors"
@@ -134,7 +159,9 @@ export function Sidebar() {
         <div className="flex items-center justify-around h-16">
           {navItems.map((item) => {
             const isActive =
-              pathname === item.href || pathname.startsWith(item.href + "/");
+              item.href === "/admin/new-order"
+                ? pathname === "/admin/new-order"
+                : pathname === item.href || pathname.startsWith(item.href + "/");
             const Icon = item.icon;
 
             return (
@@ -146,7 +173,14 @@ export function Sidebar() {
                   isActive ? "text-primary" : "text-text-muted"
                 )}
               >
-                <Icon className="w-5 h-5" />
+                <span className="relative">
+                  <Icon className="w-5 h-5" />
+                  {item.href === "/admin/new-order/cart" && cartItems.length > 0 && (
+                    <span className="absolute -top-1 -right-2 bg-primary text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
+                      {cartItems.length}
+                    </span>
+                  )}
+                </span>
                 <span className="text-[10px] font-medium">{item.label}</span>
               </Link>
             );

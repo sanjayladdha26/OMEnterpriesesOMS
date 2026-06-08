@@ -1,7 +1,5 @@
-"use client";
-
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, ImageIcon } from "lucide-react";
 import { useProducts } from "@/lib/hooks";
 import type { Product } from "@/types/database";
 import { QuantityInputModal } from "./quantity-input-modal";
@@ -50,13 +48,26 @@ export function ProductSelector() {
                 tabIndex={0}
                 className="bg-surface border border-border rounded-xl overflow-hidden text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group flex flex-col cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
+                {/* Product Image Header */}
+                <div className="relative w-full h-28 bg-surface overflow-hidden group/image flex items-center justify-center text-text-light border-b border-border">
+                  {product.image_url ? (
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <ImageIcon className="w-8 h-8 opacity-30 group-hover/image:scale-110 group-hover:scale-110 transition-transform duration-300" />
+                  )}
+                </div>
+
                 {/* Product Info */}
-                <div className="p-4">
-                  <h3 className="text-sm font-semibold text-text-primary leading-tight group-hover:text-primary transition-colors">
+                <div className="p-3.5 flex-1 flex flex-col justify-between">
+                  <h3 className="text-sm font-semibold text-text-primary leading-snug group-hover:text-primary transition-colors line-clamp-2">
                     {product.name}
                   </h3>
                   {product.sku_name && (
-                    <p className="text-xs text-text-muted mt-1">
+                    <p className="text-xs text-text-muted mt-1.5 font-medium tracking-wide">
                       {product.sku_name}
                     </p>
                   )}

@@ -12,7 +12,6 @@ import type { Order } from "@/types/database";
 export default function AdminNewOrderPage() {
   const { data: orderNumber, isLoading: orderLoading } = useNextOrderNumber();
   const [lastSavedOrder, setLastSavedOrder] = useState<Order | null>(null);
-  const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
   const cartItems = useCartStore((s) => s.items);
 
   const router = useRouter();
@@ -47,7 +46,7 @@ export default function AdminNewOrderPage() {
             </div>
             {/* Mobile Cart Button */}
             <button
-              onClick={() => setIsMobileCartOpen(true)}
+              onClick={() => router.push("/admin/new-order/cart")}
               className="lg:hidden relative p-2 bg-surface rounded-full shadow-sm border border-border flex items-center justify-center text-primary"
             >
               <ShoppingCart className="w-5 h-5" />
@@ -72,20 +71,6 @@ export default function AdminNewOrderPage() {
           onOrderSaved={handleOrderSaved}
         />
       </div>
-
-      {/* Mobile Cart Overlay */}
-      {isMobileCartOpen && (
-        <div className="fixed inset-0 z-[60] flex flex-col bg-background lg:hidden drawer-enter">
-          <CartPanel
-            orderNumber={displayOrderNumber}
-            onOrderSaved={(order) => {
-              setIsMobileCartOpen(false);
-              handleOrderSaved(order);
-            }}
-            onClose={() => setIsMobileCartOpen(false)}
-          />
-        </div>
-      )}
     </div>
   );
 }

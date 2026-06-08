@@ -7,6 +7,12 @@ import { AuthGuard } from "@/components/auth/auth-guard";
 export const metadata: Metadata = {
   title: "OM — Order System",
   description: "Modern POS and Order Management System",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "MudraOMS",
+  },
 };
 
 export default function RootLayout({

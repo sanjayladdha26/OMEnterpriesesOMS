@@ -75,7 +75,7 @@ export function QuantityInputModal({ product, onClose }: QuantityInputModalProps
       product_name: product.name,
       quantity: qty,
       note: note.trim() || undefined,
-      image_url: imageUrl,
+      image_url: imageUrl || product.image_url || undefined,
     });
     
     setIsUploading(false);

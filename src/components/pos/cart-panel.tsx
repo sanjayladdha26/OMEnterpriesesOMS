@@ -168,7 +168,7 @@ export function CartPanel({ orderNumber, onOrderSaved, onClose }: CartPanelProps
                     </div>
                     <button
                       onClick={() => removeItem(item.id)}
-                      className="p-1 rounded-lg text-text-light hover:text-red hover:bg-red-light transition-colors opacity-0 group-hover:opacity-100 ml-2"
+                      className="p-1 rounded-lg text-text-light hover:text-red hover:bg-red-light transition-colors ml-2"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -202,12 +202,29 @@ export function CartPanel({ orderNumber, onOrderSaved, onClose }: CartPanelProps
       {/* Summary & Checkout - only show when items exist */}
       {items.length > 0 && (
         <div className="border-t border-border bg-surface flex flex-col">
-          <div className="px-4 py-3">
-            <OrderSubmitBar
-              orderNumber={orderNumber}
-              onOrderSaved={onOrderSaved}
-            />
+          <div className="px-4 pt-4 pb-2">
+            <div className="bg-surface-hover/45 rounded-xl p-3.5 border border-border/60 space-y-2">
+              <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-1">
+                Order Summary
+              </h3>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-text-muted">Total Products</span>
+                <span className="font-semibold text-text-primary">
+                  {items.length} {items.length === 1 ? "item" : "items"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-text-muted">Total Quantity</span>
+                <span className="font-bold text-primary">
+                  {items.reduce((sum, item) => sum + (item.quantity || 0), 0).toFixed(2).replace(/\.?0+$/, "")} mtrs
+                </span>
+              </div>
+            </div>
           </div>
+          <OrderSubmitBar
+            orderNumber={orderNumber}
+            onOrderSaved={onOrderSaved}
+          />
         </div>
       )}
 

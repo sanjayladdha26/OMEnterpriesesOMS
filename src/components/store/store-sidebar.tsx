@@ -9,19 +9,30 @@ import {
   Menu,
   X,
   LogOut,
+  Package,
 } from "lucide-react";
 import { useUIStore } from "@/stores/ui-store";
 import { useAuthStore } from "@/stores/auth-store";
+import { useCartStore } from "@/stores/cart-store";
 import { cn } from "@/lib/utils";
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  mobileOnly?: boolean;
+}
 
 export function StoreSidebar() {
   const pathname = usePathname();
   const { sidebarOpen, toggleSidebar, setSidebarOpen } = useUIStore();
   const logout = useAuthStore((s) => s.logout);
   const role = useAuthStore((s) => s.role);
+  const cartItems = useCartStore((s) => s.items);
 
-  const navItems = [
-    { href: "/store", label: "Products", icon: ShoppingCart },
+  const navItems: NavItem[] = [
+    { href: "/store", label: "Products", icon: Package },
+    { href: "/store/cart", label: "Cart", icon: ShoppingCart, mobileOnly: true },
     { href: "/store/parties", label: role === "party" ? "Profile" : "My Parties", icon: User },
     { href: "/store/orders", label: "My Orders", icon: FileText },
   ];
@@ -65,8 +76,11 @@ export function StoreSidebar() {
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
+          {navItems.filter((item) => !item.mobileOnly).map((item) => {
+            const isActive =
+              item.href === "/store"
+                ? pathname === "/store"
+                : pathname === item.href || pathname.startsWith(item.href + "/");
             const Icon = item.icon;
 
             return (
@@ -107,7 +121,10 @@ export function StoreSidebar() {
       <nav className="fixed bottom-0 left-0 right-0 z-30 bg-surface border-t border-border lg:hidden no-print">
         <div className="flex items-center justify-around h-16">
           {navItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive =
+              item.href === "/store"
+                ? pathname === "/store"
+                : pathname === item.href || pathname.startsWith(item.href + "/");
             const Icon = item.icon;
 
             return (
@@ -119,7 +136,14 @@ export function StoreSidebar() {
                   isActive ? "text-primary" : "text-text-muted"
                 )}
               >
-                <Icon className="w-5 h-5" />
+                <span className="relative">
+                  <Icon className="w-5 h-5" />
+                  {item.href === "/store/cart" && cartItems.length > 0 && (
+                    <span className="absolute -top-1 -right-2 bg-primary text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
+                      {cartItems.length}
+                    </span>
+                  )}
+                </span>
                 <span className="text-[10px] font-medium">{item.label}</span>
               </Link>
             );
