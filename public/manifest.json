@@ -1,7 +1,7 @@
 {
-  "name": "MudraOMS",
-  "short_name": "MudraOMS",
-  "description": "Mudra Order Management System",
+  "name": "OM Vastra",
+  "short_name": "OM Vastra",
+  "description": "OM Vastra Order Management System",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

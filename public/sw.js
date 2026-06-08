@@ -1,8 +1,8 @@
 // ============================================================
-// Service Worker — MudraOMS PWA & Push Notifications
+// Service Worker — OM Vastra PWA & Push Notifications
 // ============================================================
 
-const CACHE_NAME = 'mudra-oms-cache-v1';
+const CACHE_NAME = 'om-vastra-cache-v1';
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',

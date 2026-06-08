@@ -420,9 +420,7 @@ export function OrderDetailDrawer({
             <div>
               <span className="italic">Computer generated order confirmation</span>
             </div>
-            <div className="font-medium">
-              powered by <span className="font-bold text-gray-500">MudraOMS</span>
-            </div>
+
           </div>
         </div>
       </div>
